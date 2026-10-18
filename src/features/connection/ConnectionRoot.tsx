@@ -8,6 +8,7 @@ import { errorMessage } from '../../lib/errors'
 import { useTheme } from '../../theme'
 import { AccountProvider } from '../account/AccountProvider'
 import { ConnectedHouseholdProvider } from '../household/ConnectedHouseholdProvider'
+import { HouseholdProvider } from '../household/store'
 import { loadIdentity } from '../household/repository'
 import { ConnectionContext } from './ConnectionContext'
 import '../household/Workspace.css'
@@ -201,9 +202,11 @@ export function ConnectionRoot() {
   if (isDemo || !client) {
     return (
       <AccountProvider>
-        <Suspense fallback={<p className="connection-state" role="status">Membuka rumah…</p>}>
-          <App />
-        </Suspense>
+        <HouseholdProvider>
+          <Suspense fallback={<p className="connection-state" role="status">Membuka rumah…</p>}>
+            <App />
+          </Suspense>
+        </HouseholdProvider>
       </AccountProvider>
     )
   }
