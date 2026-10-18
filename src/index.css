@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/poppins-latin-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/poppins-latin-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/poppins-latin-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Poppins";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/poppins-latin-700.woff2") format("woff2");
+}
+
+:root {
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #2c2c2b;
+  background: #dfe4ec;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --ink: #2c2c2b;
+  --muted: #696967;
+  --lavender: #f1f2fa;
+  --line: #ededed;
+  --focus: #526a79;
+}
+
+:root[data-theme="dark"] {
+  color: #e9e9ee;
+  background: #111216;
+  --muted: #adaeb8;
+  --lavender: #262733;
+  --line: #303138;
+  --focus: #b6cadb;
+}
+
+:root[data-theme="dark"] input::placeholder { color: #a4a5b1; }
+:root[data-theme="dark"] input { caret-color: currentColor; }
+:root[data-theme="dark"] ::selection { background: #526675; color: #fff; }
+:root[data-theme="dark"] * { scrollbar-color: #5d626d transparent; }
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input, select { font: inherit; }
+button, a, input, select { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; }
+button { color: inherit; }
+button:disabled { cursor: wait; opacity: .65; }
+a { color: inherit; text-decoration: none; text-underline-offset: 4px; }
+button, a, input, select { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+input, select { caret-color: var(--ink); }
+input::placeholder { color: #6d6d6a; opacity: 1; }
+::selection { background: #d7e1e7; color: #202827; }
+* { scrollbar-color: #b7bfca transparent; scrollbar-width: thin; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { text-wrap: balance; }
+button { border: 0; }
+svg { flex-shrink: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

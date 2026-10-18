@@ -1,0 +1,229 @@
+:root {
+  --workspace-text: #2c2c2b;
+  --workspace-fill: #f6f6f8;
+  --workspace-border: #e3e3e9;
+  --workspace-action: #2c2c2b;
+  --workspace-on-action: #fff;
+  --workspace-positive: #3d6e4d;
+}
+[data-theme="dark"] {
+  --workspace-text: #e9e9ee;
+  --workspace-fill: #282a34;
+  --workspace-border: #484b59;
+  --workspace-action: #e5e5ee;
+  --workspace-on-action: #25252e;
+  --workspace-positive: #b6d4be;
+}
+
+.workspace-preview { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; padding: 0 0 16px; margin-bottom: 15px; color: var(--muted); font-size: 10px; border-bottom: 1px solid var(--line); }
+.workspace-preview > span:last-child { color: var(--workspace-text); }
+.workspace-note, .form-hint { font-size: 12px; line-height: 1.8; color: var(--muted); margin: 18px 0 24px; }
+.workspace-dialog .dialog-heading h2 { overflow-wrap: anywhere; }
+.workspace-dialog .dialog-heading p { line-height: 1.7; }
+.workspace-form .form-field { min-width: 0; display: flex; flex-direction: column; gap: 9px; margin-bottom: 20px; }
+.workspace-form .form-field > label, .workspace-form .category-fieldset legend { font-size: 12px; font-weight: 600; }
+.workspace-form .form-field small { font-size: 10px; color: var(--muted); line-height: 1.6; }
+.workspace-form .form-field > input,
+.workspace-form .form-field > select,
+.workspace-form .form-field > textarea,
+.compact-money { width: 100%; min-width: 0; min-height: 50px; border-radius: 13px; border: 1px solid var(--workspace-border); background: transparent; color: var(--workspace-text); font-size: 13px; padding: 13px; }
+.workspace-form textarea { resize: vertical; }
+.workspace-form select, .filter-grid select, .bills-summary select { color-scheme: inherit; }
+.workspace-form select option, .filter-grid select option, .bills-summary select option { background: var(--workspace-fill); color: var(--workspace-text); }
+.compact-money { display: flex; align-items: center; gap: 9px; padding: 0 13px; }
+.compact-money > span { color: var(--muted); font-size: 13px; }
+.compact-money > input { min-width: 0; width: 100%; border: 0; background: transparent; color: var(--workspace-text); font-size: 15px; padding: 12px 0; font-variant-numeric: tabular-nums; border-radius: 4px; }
+.compact-money > input:focus-visible { outline: none; }
+.compact-money:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 3px; }
+.form-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.workspace-form .amount-entry { margin-bottom: 24px; }
+.workspace-form .category-fieldset { margin-bottom: 22px; }
+.workspace-form .expense-recorder { padding-top: 0; }
+.workspace-form .form-hint { margin-top: 0; }
+.transaction-kind { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 5px; background: var(--workspace-fill); border-radius: 15px; margin-bottom: 20px; }
+.transaction-kind button { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px; background: transparent; border-radius: 11px; font-size: 11px; color: var(--muted); }
+.transaction-kind button[aria-pressed="true"] { background: var(--workspace-action); color: var(--workspace-on-action); }
+.secondary-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 14px; border: 1px solid var(--workspace-border); border-radius: 12px; background: transparent; color: var(--workspace-text); font-size: 11px; font-weight: 500; }
+.secondary-button:hover { background: var(--workspace-fill); }
+.danger-text { min-height: 44px; font-size: 12px; color: #973e3e; background: transparent; margin-top: 12px; }
+.danger-button { min-height: 47px; border-radius: 13px; padding: 12px 18px; color: #fff; background: #973e3e; font-size: 12px; font-weight: 600; }
+.danger-button:hover { background: #7c3030; }
+.confirm-description { color: var(--muted); font-size: 13px; line-height: 1.9; margin-bottom: 25px; overflow-wrap: anywhere; }
+.confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.confirm-dialog { max-width: 410px; }
+.payment-summary { text-align: center; padding: 25px 15px; background: var(--lavender); border-radius: 22px; margin-bottom: 24px; }
+.payment-summary > svg { margin: 0 auto 15px; }
+.payment-summary h3 { font-size: 16px; font-weight: 600; }
+.payment-summary strong { display: block; font-size: 30px; margin: 10px 0; letter-spacing: -.8px; }
+.payment-summary p { font-size: 11px; color: var(--muted); }
+.balance-caption { font-size: 11px; color: #d3d3d0; margin: -12px 0 25px; }
+.finance-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0 25px; }
+.finance-actions > button { display: flex; flex-direction: column; align-items: center; gap: 9px; min-height: 80px; padding: 13px 5px; background: transparent; border-radius: 16px; font-size: 12px; font-weight: 500; }
+.finance-actions > button > span { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 14px; background: var(--workspace-fill); color: var(--workspace-text); }
+.finance-actions > button:hover { background: var(--workspace-fill); }
+.finance-actions > button:nth-child(2) > span { background: var(--workspace-action); color: var(--workspace-on-action); }
+.finance-tabs { margin-bottom: 25px; }
+.wallet-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.wallet-card { min-width: 0; padding: 19px 21px 12px; border-radius: 24px; background: var(--lavender); }
+.wallet-symbol { width: 39px; height: 39px; display: grid; place-items: center; color: var(--workspace-text); }
+.wallet-card h3 { font-size: 13px; font-weight: 500; margin-top: 10px; }
+.wallet-balance { display: block; font-size: 23px; letter-spacing: -.7px; margin-top: 4px; font-weight: 600; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.wallet-footer { display: flex; justify-content: space-between; align-items: center; gap: 5px; margin-top: 13px; }
+.wallet-footer > span { color: var(--muted); font-size: 10px; }
+.wallet-footer .icon-button { width: 44px; height: 44px; margin-right: -8px; }
+.wallet-grid .empty-state, .bill-grid .empty-state { grid-column: 1 / -1; }
+.budget-settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.budget-workspace .pocket-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.budget-workspace .pocket-card { min-width: 0; }
+.budget-workspace .pocket-card > strong { font-size: clamp(16px, 4.8vw, 22px); overflow-wrap: anywhere; }
+.budget-workspace .balance-footer > span { display: inline-flex; align-items: center; gap: 5px; }
+.budget-limit { border: 1px solid var(--workspace-border); border-radius: 22px; padding: 20px; min-width: 0; }
+.budget-limit > .row-between { font-size: 12px; }
+.budget-limit > .row-between svg { color: var(--muted); }
+.budget-limit > strong { font-size: 24px; display: block; letter-spacing: -.7px; margin-top: 18px; font-weight: 600; overflow-wrap: anywhere; }
+.budget-limit .progress { margin: 18px 0 10px; }
+.budget-limit > p { font-size: 10px; }
+.over-limit { color: #973e3e; }
+.managed-goal { padding-bottom: 22px; }
+.goal-actions { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-top: 15px; }
+.row-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.row-actions .icon-button { color: var(--muted); }
+.row-actions .delete-button:hover { color: #973e3e; }
+.transaction-row { border-bottom: 1px solid var(--line); padding: 17px 0 9px; }
+.transaction-main { display: flex; align-items: center; gap: 11px; }
+.transaction-date { display: inline-block; margin-left: 8px; }
+.transaction-income .expense-amount { color: var(--workspace-positive); }
+.transaction-income .list-icon { color: var(--workspace-positive); }
+.transaction-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0 -4px 51px; }
+.transaction-meta > span { color: var(--muted); font-size: 10px; line-height: 1.6; }
+.recent-expenses .transaction-row { padding-bottom: 17px; }
+.search-field { display: flex; align-items: center; gap: 10px; border: 1px solid var(--workspace-border); border-radius: 14px; padding: 0 14px; color: var(--muted); }
+.search-field input { min-width: 0; width: 100%; min-height: 49px; padding: 12px 0; border: 0; background: transparent; color: var(--workspace-text); font-size: 14px; }
+.search-field input:focus-visible { outline: none; }
+.search-field:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 3px; }
+.filter-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0 2px; }
+.filter-grid > label { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
+.filter-grid > label > span { font-size: 11px; color: var(--muted); }
+.filter-grid select, .filter-grid input, .bills-summary select { background: var(--workspace-fill); border: 1px solid transparent; color: var(--workspace-text); border-radius: 12px; min-width: 0; width: 100%; min-height: 46px; padding: 10px 11px; font-size: 12px; }
+.history-filters > .row-between { margin-top: 6px; }
+.calendar-tools { display: flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 22px; }
+.calendar-tools > label { min-width: 0; flex: 1; max-width: 190px; }
+.calendar-tools input { border: 1px solid var(--workspace-border); background: transparent; color: var(--workspace-text); border-radius: 13px; width: 100%; min-width: 0; min-height: 44px; font-size: 12px; padding: 8px 10px; }
+.calendar-tools > .text-button { min-width: 48px; justify-content: center; }
+.calendar-work-area { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.calendar-work-area > .calendar-content { width: 100%; min-width: 0; }
+.calendar-work-area > .calendar-content > .section-heading { margin-top: 0; }
+.agenda-composer { min-width: 0; border: 1px solid var(--workspace-border); border-radius: 24px; padding: 23px; }
+.agenda-form-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 5px; }
+.agenda-form-heading h2 { font-size: 20px; font-weight: 600; letter-spacing: -.5px; }
+.agenda-form-description { color: var(--muted); font-size: 12px; line-height: 1.7; margin-bottom: 24px; }
+.agenda-composer .form-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.agenda-entry-form textarea::placeholder, .house-entry-form textarea::placeholder { color: var(--muted); opacity: 1; }
+.agenda-entry-form textarea, .house-entry-form textarea { caret-color: currentColor; }
+.house-work-area { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: start; gap: 32px; }
+.house-composer { min-width: 0; padding: 23px; border: 1px solid var(--workspace-border); border-radius: 24px; }
+.house-list-area { min-width: 0; }
+.house-list-area > section > .section-heading { margin-top: 0; }
+.house-list-area .bill-grid { grid-template-columns: minmax(0, 1fr); }
+.house-record { min-width: 0; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.house-record .document-row, .house-record .contact-row { padding-bottom: 10px; }
+.house-record-note { font-size: 12px; line-height: 1.8; color: var(--muted); margin: 0 0 10px 53px; overflow-wrap: anywhere; }
+.house-record-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.house-record-footer > span { font-size: 10px; line-height: 1.6; }
+.document-days.record-expired { color: #973e3e; }
+.house-entry-form .form-hint { font-size: 11px; }
+.agenda-count { margin: -7px 0 24px; }
+.managed-agenda-actions { display: flex; align-items: center; justify-content: space-between; gap: 5px; margin-top: 22px; }
+.agenda-complete { display: flex; align-items: center; gap: 6px; min-height: 44px; font-size: 10px; cursor: pointer; }
+.agenda-complete input { width: 16px; height: 16px; accent-color: var(--workspace-action); }
+.agenda-featured .row-actions .icon-button { color: #e3e3e7; }
+.agenda-featured .row-actions .icon-button:hover { background: #49494f; }
+.agenda-featured .agenda-complete { color: #e3e3e7; }
+.agenda-featured .agenda-complete input { accent-color: #dddde5; }
+.agenda-done .agenda-card h3 { text-decoration: line-through; }
+.calendar-workspace .agenda-card p { overflow-wrap: anywhere; }
+.bills-summary { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 6px 0 24px; }
+.bills-summary > div { display: flex; flex-direction: column; gap: 4px; }
+.bills-summary strong { font-size: 27px; font-weight: 600; letter-spacing: -.8px; }
+.bills-summary > label { max-width: 160px; }
+.bill-actions { display: flex; align-items: center; justify-content: space-between; gap: 5px; margin-top: 18px; border-top: 1px solid var(--workspace-border); padding-top: 15px; }
+.bill-actions .primary-button { min-height: 44px; padding: 10px 13px; font-size: 11px; border-radius: 12px; }
+.empty-state h3 { font-size: 15px; font-weight: 600; margin-bottom: 7px; color: var(--workspace-text); }
+.empty-state p { max-width: 330px; margin: 0 auto; }
+
+[data-theme="dark"] .danger-text, [data-theme="dark"] .over-limit { color: #ffb2b2; }
+[data-theme="dark"] .danger-button { color: #402329; background: #ffb2b2; }
+[data-theme="dark"] .danger-button:hover { background: #ffcece; }
+[data-theme="dark"] .row-actions .delete-button:hover { color: #ffb2b2; }
+[data-theme="dark"] .document-days.record-expired { color: #ffb2b2; }
+
+@media (max-width: 899px) and (min-width: 600px) {
+  .wallet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 899px) {
+  .calendar-work-area { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .house-work-area { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 599px) {
+  .house-composer { padding: 20px 18px; border-radius: 22px; }
+  .house-composer .save-expense { font-size: 12px; }
+  .house-record-note { margin-left: 0; font-size: 11px; }
+  .house-list-area .section-heading h2 { font-size: 18px; }
+  .house-list-area .document-days { font-size: 18px; }
+  .agenda-composer { padding: 20px 18px; border-radius: 22px; }
+  .agenda-composer .save-expense { font-size: 12px; }
+  .wallet-grid { grid-template-columns: 1fr; gap: 12px; }
+  .wallet-card { padding: 16px 20px 10px; }
+  .wallet-card > .row-between { float: right; flex-direction: row-reverse; gap: 4px; margin: -5px -6px 0 10px; }
+  .wallet-symbol { width: 35px; height: 35px; }
+  .wallet-card h3 { margin-top: 8px; }
+  .wallet-balance { font-size: 25px; margin-top: 5px; }
+  .wallet-footer { clear: both; margin-top: 7px; }
+  .wallet-grid .empty-state { width: 100%; }
+  .budget-settings-grid { gap: 10px; }
+  .budget-limit { padding: 17px 14px; }
+  .budget-limit > strong { font-size: 21px; }
+  .finance-actions { gap: 6px; margin-top: 16px; }
+  .finance-actions > button { font-size: 11px; }
+  .filter-grid { grid-template-columns: 1fr 1fr; gap: 12px 10px; }
+  .filter-grid > label:last-child { grid-column: 1 / -1; }
+  .transaction-date { display: block; margin: 3px 0 0; }
+  .transaction-meta { margin-left: 0; }
+  .transaction-meta > span { padding-left: 3px; }
+  .transaction-row .expense-amount { font-size: 11px; }
+  .workspace-form .form-field > input,
+  .workspace-form .form-field > select,
+  .workspace-form .form-field > textarea,
+  .compact-money > input { font-size: 16px; }
+  .workspace-dialog .dialog-heading h2 { font-size: 22px; }
+  .workspace-dialog .form-columns { gap: 10px; }
+  .workspace-dialog .dialog-content { padding-left: 22px; padding-right: 22px; }
+  .workspace-form .form-field > select { padding-left: 10px; padding-right: 6px; }
+  .workspace-form .form-field > input { padding-left: 11px; padding-right: 8px; }
+  .compact-money { gap: 6px; padding-left: 11px; padding-right: 7px; }
+  .workspace-form .amount-entry > p { margin-bottom: 0; }
+  .calendar-workspace .calendar-content .section-heading h2 { font-size: 17px; }
+  .calendar-workspace .agenda-card .row-between { align-items: flex-start; }
+  .calendar-workspace .calendar-content .agenda-card h3 { font-size: 18px; }
+  .calendar-workspace .agenda-card .row-actions .icon-button { width: 40px; }
+  .bill-actions .secondary-button { font-size: 10px; }
+  .preview-banner { font-size: 10px; }
+}
+@media (max-width: 399px) {
+  .calendar-workspace .calendar-strip { margin-left: -12px; margin-right: -12px; gap: 0; }
+  .calendar-workspace .calendar-strip > button { min-width: 44px; }
+}
+@media (max-width: 359px) {
+  .agenda-composer .form-columns { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .workspace-preview { font-size: 9px; }
+  .workspace-dialog .dialog-content { padding-left: 18px; padding-right: 18px; }
+  .workspace-dialog .dialog-heading h2 { font-size: 20px; }
+  .form-columns { gap: 9px; }
+  .budget-limit > strong { font-size: 18px; }
+  .transaction-main { gap: 8px; }
+  .transaction-row .list-icon { width: 30px; height: 35px; }
+  .transaction-row .expense-amount { font-size: 10px; }
+  .transaction-row .row-copy h3 { font-size: 11px; }
+  .calendar-workspace .calendar-content .agenda-card { padding-left: 14px; padding-right: 14px; }
+  .calendar-workspace .calendar-content .agenda-card h3 { font-size: 16px; }
+}

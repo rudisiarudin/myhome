@@ -1,0 +1,35 @@
+.access-shell { max-width: 720px; min-height: calc(100dvh - 64px); margin: 32px auto; padding: 0 38px 24px; border-radius: 36px; background: #fff; color: var(--workspace-text); }
+.access-header { min-height: 91px; display: flex; align-items: center; justify-content: space-between; }
+.access-content { width: 100%; max-width: 420px; margin: 38px auto 64px; }
+.access-content h1 { font-size: 32px; font-weight: 700; line-height: 1.25; letter-spacing: -.8px; text-wrap: balance; }
+.access-description { font-size: 13px; line-height: 1.8; color: var(--muted); margin: 16px 0 28px; }
+.access-form { margin-top: 26px; }
+.access-form fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 20px; }
+.access-form label { display: grid; gap: 8px; font-size: 12px; font-weight: 500; }
+.access-form small { font-weight: 400; color: var(--muted); line-height: 1.7; }
+.access-form input, .access-form select { width: 100%; min-height: 50px; border: 1px solid var(--workspace-border); border-radius: 13px; padding: 13px; background: transparent; color: var(--workspace-text); font: inherit; }
+.access-form .primary-button { width: 100%; margin-top: 4px; }
+.access-message { background: var(--lavender); padding: 15px; border-radius: 13px; font-size: 12px; line-height: 1.8; }
+.access-link { margin-top: 22px; min-height: 44px; }
+.access-footer { text-align: center; font-size: 11px; color: var(--muted); }
+.connection-state { max-width: 600px; margin: 15vh auto; padding: 28px; }
+.connection-state h1 { font-size: 24px; line-height: 1.4; }
+.connection-state p { color: var(--muted); font-size: 13px; line-height: 1.8; margin: 16px 0 24px; }
+.connection-warning { padding: 16px 24px; background: var(--lavender); color: var(--workspace-text); font-size: 12px; line-height: 1.8; }
+.sync-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sync-actions .text-button { min-height: 44px; }
+.profile-settings { margin-top: 16px; }
+.profile-settings label { font-size: 11px; }
+.profile-settings { display: grid; gap: 14px; }
+.profile-settings summary { min-height: 44px; padding-top: 12px; cursor: pointer; font-size: 12px; }
+.profile-settings input { font-size: 12px; }
+.profile-settings .access-form { margin-top: 16px; }
+.invite-code { display: block; word-break: break-all; font: inherit; font-size: 12px; padding: 12px; margin-top: 12px; border-radius: 12px; background: var(--workspace-fill); user-select: all; }
+[data-theme="dark"] .access-shell { background: #1b1c21; }
+@media (max-width: 759px) {
+  .access-shell { min-height: 100dvh; margin: 0 auto; border-radius: 0; padding: 0 24px 24px; }
+  .access-header { min-height: 82px; }
+  .access-content { margin-top: 32px; }
+  .access-form input, .access-form select { font-size: 16px; }
+}
+@media (max-width: 359px) { .access-shell { padding-inline: 18px; } .access-content h1 { font-size: 28px; } }
