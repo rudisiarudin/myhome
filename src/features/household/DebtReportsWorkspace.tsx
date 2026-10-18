@@ -25,8 +25,12 @@ export function DebtReportsWorkspace() {
   // Perhitungan Neraca Kekayaan Bersih (Net Worth)
   const totalWallets = state.wallets.reduce((sum, w) => sum + walletBalance(w, state.transactions), 0)
   const totalSavings = state.goals.reduce((sum, g) => sum + g.openingAmount, 0)
-  const totalAssets = totalWallets + totalSavings
-  const totalDebts = state.debts.reduce((sum, d) => sum + d.remainingAmount, 0)
+  // Piutang = Uang kita yang dipinjam orang lain (merupakan ASET)
+  const totalPiutang = state.debts.filter(d => d.type === 'piutang').reduce((sum, d) => sum + d.remainingAmount, 0)
+  const totalAssets = totalWallets + totalSavings + totalPiutang
+
+  // Utang / Liabilitas = Uang yang kita pinjam (KPR, motor, pinjaman)
+  const totalDebts = state.debts.filter(d => d.type !== 'piutang').reduce((sum, d) => sum + d.remainingAmount, 0)
   const netWorth = totalAssets - totalDebts
 
   const handleAddDebt = (e: React.FormEvent) => {
@@ -101,31 +105,31 @@ export function DebtReportsWorkspace() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.15)', fontSize: '12px' }}>
           <div>
-            <span style={{ color: '#a8bfce', display: 'block', fontSize: '10px', textTransform: 'uppercase' }}>Total Aset & Saldo</span>
+            <span style={{ color: '#a8bfce', display: 'block', fontSize: '10px', textTransform: 'uppercase' }}>Total Aset & Piutang</span>
             <strong style={{ color: '#22c55e', fontSize: '14px' }}>+{money(totalAssets)}</strong>
           </div>
           <div>
-            <span style={{ color: '#a8bfce', display: 'block', fontSize: '10px', textTransform: 'uppercase' }}>Sisa Liabilitas / KPR</span>
+            <span style={{ color: '#a8bfce', display: 'block', fontSize: '10px', textTransform: 'uppercase' }}>Total Utang / KPR</span>
             <strong style={{ color: '#ef4444', fontSize: '14px' }}>-{money(totalDebts)}</strong>
           </div>
         </div>
       </section>
 
-      {/* ─── 2. DAFTAR CICILAN & KPR ─── */}
+      {/* ─── 2. DAFTAR CICILAN, KPR & PIUTANG ─── */}
       <section>
-        <SectionHeading title="Cicilan, KPR & Pinjaman" />
+        <SectionHeading title="Utang, KPR & Piutang" />
         <p className="muted small" style={{ marginTop: '-8px', marginBottom: '18px' }}>
-          Pantau sisa pokok pinjaman, tenor, dan angsuran bulanan keluarga.
+          Pantau sisa cicilan yang harus dibayar, serta uang yang sedang dipinjam orang lain.
         </p>
 
-        {/* Form Tambah Cicilan/KPR */}
+        {/* Form Tambah Cicilan/KPR/Piutang */}
         <form onSubmit={handleAddDebt} className="workspace-form house-entry-form" style={{ marginBottom: '24px' }}>
           <div className="form-field">
-            <label htmlFor="debt-title">Nama Pinjaman / Cicilan</label>
+            <label htmlFor="debt-title">Nama Catatan</label>
             <input
               id="debt-title"
               required
-              placeholder="Misalnya, KPR Bank Mandiri, Cicilan Motor..."
+              placeholder="Misalnya, KPR Mandiri, Piutang Teman Kantor..."
               value={title}
               onChange={e => setTitle(e.target.value)}
             />
@@ -133,19 +137,19 @@ export function DebtReportsWorkspace() {
 
           <div className="form-columns">
             <div className="form-field">
-              <label htmlFor="debt-type">Jenis</label>
+              <label htmlFor="debt-type">Jenis Catatan</label>
               <select id="debt-type" value={type} onChange={e => setType(e.target.value as any)}>
-                <option value="kpr">KPR Rumah</option>
-                <option value="kendaraan">Kredit Kendaraan</option>
-                <option value="personal">Pinjaman Pribadi</option>
-                <option value="piutang">Piutang (Dipinjam Orang)</option>
+                <option value="kpr">Utang KPR Rumah</option>
+                <option value="kendaraan">Utang Kredit Kendaraan</option>
+                <option value="personal">Utang Pinjaman Pribadi</option>
+                <option value="piutang">Piutang (Uang Kita Dipinjam Orang)</option>
               </select>
             </div>
             <div className="form-field">
-              <label htmlFor="debt-lender">Pemberi Pinjaman</label>
+              <label htmlFor="debt-lender">{type === 'piutang' ? 'Nama Peminjam' : 'Pemberi Pinjaman'}</label>
               <input
                 id="debt-lender"
-                placeholder="Bank / Lembaga / Nama"
+                placeholder={type === 'piutang' ? 'Nama teman / keluarga' : 'Bank / Lembaga'}
                 value={lender}
                 onChange={e => setLender(e.target.value)}
               />
@@ -154,22 +158,22 @@ export function DebtReportsWorkspace() {
 
           <div className="form-columns">
             <div className="form-field">
-              <label htmlFor="debt-total">Total Pokok Pinjaman (Rp)</label>
+              <label htmlFor="debt-total">{type === 'piutang' ? 'Total Uang yang Dipinjamkan' : 'Total Pokok Pinjaman (Rp)'}</label>
               <input
                 id="debt-total"
                 type="number"
                 required
-                placeholder="Contoh: 350000000"
+                placeholder="Contoh: 5000000"
                 value={totalAmount}
                 onChange={e => setTotalAmount(e.target.value)}
               />
             </div>
             <div className="form-field">
-              <label htmlFor="debt-rem">Sisa Pokok Saat Ini (Rp)</label>
+              <label htmlFor="debt-rem">{type === 'piutang' ? 'Sisa yang Belum Dikembalikan' : 'Sisa Pokok Saat Ini (Rp)'}</label>
               <input
                 id="debt-rem"
                 type="number"
-                placeholder="Kosongkan jika baru mulai"
+                placeholder="Kosongkan jika masih utuh"
                 value={remainingAmount}
                 onChange={e => setRemainingAmount(e.target.value)}
               />
@@ -216,24 +220,26 @@ export function DebtReportsWorkspace() {
           </button>
         </form>
 
-        {/* List Cicilan Aktif */}
+        {/* List Cicilan & Piutang Aktif */}
         <div className="house-records">
           {state.debts.length ? state.debts.map(d => {
+            const isPiutang = d.type === 'piutang'
             const pctPaid = Math.min(Math.round(((d.totalAmount - d.remainingAmount) / d.totalAmount) * 100), 100)
             return (
               <article className="house-record" key={d.id} style={{ padding: '18px 20px', borderRadius: '22px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <span className="badge" style={{ fontSize: '10px', textTransform: 'uppercase', marginBottom: '6px', display: 'inline-block' }}>
-                      {d.type.toUpperCase()} · {d.lenderOrBorrower}
+                    <span className="badge" style={{ fontSize: '10px', textTransform: 'uppercase', marginBottom: '6px', display: 'inline-block', color: isPiutang ? '#22c55e' : undefined, borderColor: isPiutang ? 'rgba(34,197,94,0.3)' : undefined }}>
+                      {isPiutang ? 'PIUTANG (ASET KITA)' : d.type.toUpperCase()} · {d.lenderOrBorrower}
                     </span>
                     <h3 style={{ fontSize: '15px', fontWeight: 650, margin: '2px 0 4px' }}>{d.title}</h3>
                     <p className="small muted">
-                      Sisa: <strong style={{ color: '#ef4444' }}>{money(d.remainingAmount)}</strong> / {money(d.totalAmount)} ({pctPaid}% lunas)
+                      {isPiutang ? 'Belum kembali: ' : 'Sisa utang: '}
+                      <strong style={{ color: isPiutang ? '#22c55e' : '#ef4444' }}>{money(d.remainingAmount)}</strong> / {money(d.totalAmount)} ({pctPaid}% {isPiutang ? 'sudah dikembalikan' : 'lunas'})
                     </p>
                     {d.monthlyPayment && (
                       <p className="small" style={{ marginTop: '4px' }}>
-                        Angsuran: <strong>{money(d.monthlyPayment)}/bulan</strong> (Tiap tgl {d.dueDay || '10'})
+                        {isPiutang ? 'Cicilan pengembalian: ' : 'Angsuran: '}<strong>{money(d.monthlyPayment)}/bulan</strong> {d.dueDay ? `(Tiap tgl ${d.dueDay})` : ''}
                       </p>
                     )}
                     {d.notes && <p className="small muted" style={{ marginTop: '4px', fontStyle: 'italic' }}>"{d.notes}"</p>}
@@ -249,7 +255,7 @@ export function DebtReportsWorkspace() {
                 </div>
               </article>
             )
-          }) : <p className="muted small">Belum ada cicilan atau KPR yang dicatat.</p>}
+          }) : <p className="muted small">Belum ada cicilan atau piutang yang dicatat.</p>}
         </div>
       </section>
     </div>
