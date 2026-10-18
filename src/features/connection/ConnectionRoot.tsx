@@ -1,7 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import type { Session, SupabaseClient } from '@supabase/supabase-js'
-import { House, Moon, Sun } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
+import { AppLogoIcon } from '../../components/AppLogo'
 import { supabase } from '../../lib/supabase'
 import { errorMessage } from '../../lib/errors'
 import { useTheme } from '../../theme'
@@ -17,7 +18,7 @@ const App = lazy(() => import('../../App'))
 
 function AccessShell({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useTheme()
-  return <main className="access-shell"><header className="access-header"><a className="wordmark" href="/" aria-label="MyHome"><House size={21} />myhome<span>.</span></a><button className="icon-button theme-toggle" aria-label={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>{theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}</button></header><div className="access-content">{children}</div><footer className="access-footer">Satu rumah, catatan bersama.</footer></main>
+  return <main className="access-shell"><header className="access-header"><a className="wordmark" href="/" aria-label="MyHome"><AppLogoIcon size={22} className="logo-house" />myhome<span className="dot-green">.</span></a><button className="icon-button theme-toggle" aria-label={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>{theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}</button></header><div className="access-content">{children}</div><footer className="access-footer">Satu rumah, catatan bersama.</footer></main>
 }
 
 function AuthForm({ client, recovery }: { client: SupabaseClient; recovery: boolean }) {

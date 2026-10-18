@@ -5,7 +5,8 @@
 .theme-toggle { background: #f3f3f5; }
 .theme-toggle:hover { background: #e9e9ee; }
 .wordmark { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; font-size: 20px; font-weight: 700; letter-spacing: -.6px; }
-.wordmark > span { color: #80919b; margin-left: -5px; }
+.wordmark .logo-house { flex-shrink: 0; }
+.wordmark .dot-green { color: #16a34a; margin-left: -1px; font-weight: 800; }
 .role-switch { display: flex; padding: 4px; border-radius: 16px; background: #f3f3f3; }
 .role-switch button { min-width: 64px; min-height: 44px; border-radius: 12px; background: transparent; color: #686866; font-size: 12px; font-weight: 600; transition: background .18s ease, color .18s ease; }
 .role-switch button[aria-pressed="true"] { background: var(--ink); color: #fff; }
@@ -399,7 +400,7 @@
 /* Dark surfaces keep the reference's charcoal emphasis without reversing text-only ink tokens. */
 [data-theme="dark"] .app-background { background: #111216; }
 [data-theme="dark"] .app-shell { background: #1b1c21; }
-[data-theme="dark"] .wordmark > span { color: #a8bfce; }
+[data-theme="dark"] .wordmark .dot-green { color: #22c55e; }
 [data-theme="dark"] .role-switch,
 [data-theme="dark"] .theme-toggle,
 [data-theme="dark"] .dialog-close { background: #2b2c34; }

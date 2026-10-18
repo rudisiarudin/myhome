@@ -1,0 +1,17 @@
+{
+  "name": "MyHome",
+  "short_name": "MyHome",
+  "description": "Ruang bersama untuk keuangan, agenda, dan urusan rumah berdua.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1b1c21",
+  "theme_color": "#1b1c21",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

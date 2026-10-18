@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { CalendarDays, Check, ChevronRight, Copy, Heart, Home, House, Moon, Plus, ShoppingBag, Sparkles, Sun, Trash2, Utensils, Wallet } from 'lucide-react'
+import { AppLogoIcon } from './components/AppLogo'
 import type { FoodIdea, ShoppingItem, ScheduleEvent } from './types'
 import { useHousehold } from './features/household/context'
 import { formatDate, spentIn, TODAY, makeId } from './features/household/model'
@@ -294,7 +295,10 @@ export default function App() {
     <a className="skip-link" href="#main-content">Langsung ke konten</a>
     <main className="app-shell" id="main-content">
       <header className="app-header">
-        <a href="#main-content" className="wordmark" onClick={() => navigate('today')} aria-label="MyHome, kembali ke Hari ini"><House size={21} strokeWidth={2.4} />myhome<span>.</span></a>
+        <a href="#main-content" className="wordmark" onClick={() => navigate('today')} aria-label="MyHome, kembali ke Hari ini">
+          <AppLogoIcon size={22} className="logo-house" />
+          myhome<span className="dot-green">.</span>
+        </a>
         <div className="header-actions">
           <button className="theme-toggle icon-button" aria-label={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} title={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} aria-pressed={theme === 'dark'} onClick={() => setTheme(value => value === 'light' ? 'dark' : 'light')}>
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}

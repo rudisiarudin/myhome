@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- House Outer Gable Roof -->
+  <path d="M12 28L32 12L52 28" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- House Outer Walls -->
+  <path d="M17 28V48C17 50.2 18.8 52 21 52H43C45.2 52 47 50.2 47 48V28" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Inner Heart Emblem -->
+  <path d="M32 43.5C32 43.5 24 38.5 24 33C24 30.2 26.2 28 29 28C30.6 28 31.5 28.8 32 29.5C32.5 28.8 33.4 28 35 28C37.8 28 40 30.2 40 33C40 38.5 32 43.5 32 43.5Z" fill="currentColor"/>
+</svg>
