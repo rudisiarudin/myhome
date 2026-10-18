@@ -6,6 +6,10 @@ Mode: Operate. The user approved connecting the existing app to their Supabase s
 
 Typography follow-up: the user requested smaller fonts and a push. Access headings are now 24px semibold (22px narrow); dominant page/greeting, wallet/bill, decision, calendar and editor roles were reduced in their existing CSS. Already-small metadata, Poppins, layout, colors, tap targets and 16px mobile input sizes are preserved. No new assets or behavior changes.
 
+Greeting follow-up: the user requested nickname-only text, specifically Ayu & Rudi. The greeting card uses the first word of each profile name; its couple signature keeps istri before suami, independent of the active account. Full stored names and account-menu identities are unchanged. No names are hardcoded into production UI.
+
+Navigation follow-up: the user explicitly requested iOS-like frosted glass on the header and bottom navbar, a fixed-top header, and an icon-only refresh instead of the Supabase saved label and text reload action. Glass is confined to these two navigation surfaces, so underlying content remains perceptible while chrome stays readable. Reserve header space and safe-area insets; preserve five destinations, compact typography, header control order and real loading/error behavior. Use opaque fallbacks when blur is unsupported or reduced transparency is requested. Do not add glass to cards or dialogs.
+
 ## Direction contract
 
 THESIS: extend MyHome with a short email-account and household setup flow, not a separate marketing landing page. Returning users go straight to their own household after session restoration.

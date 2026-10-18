@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "node --experimental-strip-types --test tests/household.test.mjs tests/myhome-sql.test.mjs",
+    "test": "node --experimental-strip-types --test tests/account.test.mjs tests/household.test.mjs tests/myhome-sql.test.mjs tests/debts-sql.test.mjs",
     "test:browser": "node tests/connected-app.mjs",
     "preview": "vite preview"
   },

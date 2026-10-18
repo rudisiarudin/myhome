@@ -43,7 +43,7 @@ const browser = await chromium.launch({ headless: true })
 const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce', colorScheme: 'light' })
 const page = await context.newPage()
 const checks = [], errors = [], captures = [], measurements = []
-let queue = Promise.resolve(), failRead = false, failWrite = false, failAfterWrite = false, delayedWrite = false
+let queue = Promise.resolve(), failRead = false, failWrite = false, failAfterWrite = false, delayedWrite = false, delayedRead = false
 page.on('pageerror', error => errors.push(error.message))
 const check = (label, condition) => { assert.ok(condition, label); checks.push(label) }
 const ident = value => { assert.match(value, /^[a-z_]+$/); return `"${value}"` }
@@ -76,7 +76,9 @@ await context.route('**/test-supabase/**', route => {
       return send({ message: 'Unknown test Auth route' }, 500)
     }
     if (!url.pathname.includes('/rest/v1/')) return send({})
-    if (failRead && method === 'GET') return send({ code: 'PGRST000', message: 'fixture read failure' }, 503)
+    if (delayedRead && method === 'GET') { delayedRead = false; await new Promise(resolve => setTimeout(resolve, 350)) }
+    const identityRead = /\/(profiles|households|household_members)$/.test(url.pathname)
+    if (failRead && method === 'GET' && !identityRead) return send({ code: 'PGRST000', message: 'fixture read failure' }, 503)
     if (failWrite && method !== 'GET') return send({ code: 'P0001', message: 'fixture write rejected' }, 400)
     if (delayedWrite && method !== 'GET') await new Promise(resolve => setTimeout(resolve, 350))
     try {
@@ -207,9 +209,10 @@ try {
   await page.getByText('Ubah profil', { exact: true }).click()
   await page.getByLabel('Nama panggilan').fill('Alice Rumah')
   await page.getByRole('button', { name: 'Simpan profil', exact: true }).click()
-  await page.getByText('Hai, Alice Rumah!', { exact: true }).waitFor()
+  await page.getByText('Hai, Alice!', { exact: true }).waitFor()
   await page.getByRole('button', { name: 'Tutup profil', exact: true }).click()
   check('profile update changes greeting and account avatar', await page.getByRole('button', { name: 'Buka profil Alice Rumah', exact: true }).isVisible())
+  check('greeting abbreviates the name without changing full profile identity', await page.locator('.greeting-signature').innerText().then(text => text.trim() === 'Alice'))
   await account()
   await page.getByText('Ubah profil', { exact: true }).click()
   await captureSurface('profile')
@@ -360,7 +363,10 @@ try {
   await page.getByRole('alert').filter({ hasText: 'Perubahan sudah tersimpan' }).waitFor()
   check('successful write with failed refetch does not offer duplicate resubmission', (await sqlRow("select count(*)::int as n from myhome.transactions where title = 'Draft gagal'")).n === 1)
   failRead = false
-  await page.getByRole('button', { name: 'Muat ulang', exact: true }).click()
+  delayedRead = true
+  await page.getByRole('button', { name: 'Muat ulang data', exact: true }).click()
+  await page.locator('.sync-refresh[aria-busy="true"]').waitFor()
+  check('icon refresh exposes loading state and prevents duplicate refresh', await page.getByRole('button', { name: 'Muat ulang data', exact: true }).isDisabled())
   await page.getByRole('alert').filter({ hasText: 'Perubahan sudah tersimpan' }).waitFor({ state: 'hidden' })
 
   await account(); await page.getByRole('button', { name: 'Keluar akun', exact: true }).click()
@@ -372,6 +378,7 @@ try {
   await page.getByRole('button', { name: 'Gabung rumah pasangan', exact: true }).click()
   await page.getByRole('navigation').waitFor()
   await page.getByText('Hai, Bob!', { exact: true }).waitFor()
+  check('couple signature uses short names in a stable order after partner login', await page.locator('.greeting-signature').innerText().then(text => text.trim() === 'Bob & Alice'))
   check('partner joins same real household and receives existing records', (await sqlRow('select count(*)::int as n from myhome.household_members')).n === 2)
   await account()
   check('partner cannot switch identities or issue owner invite', !await page.getByRole('button', { name: 'Undang pasangan', exact: true }).count() && !await page.getByRole('group', { name: 'Pilih akun contoh' }).count())
@@ -395,6 +402,38 @@ try {
       check(`${theme}/${label}: connected layout has no horizontal overflow`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
       check(`${theme}/${label}: greeting uses compact responsive type`, await page.locator('.greeting-copy h1').evaluate(heading => parseFloat(getComputedStyle(heading).fontSize)) === (width < 360 ? 20 : width < 760 ? 22 : 24))
       check(`${theme}/${label}: daily allowance does not enlarge on narrow screens`, await page.locator('.allowance-number').evaluate(amount => parseFloat(getComputedStyle(amount).fontSize)) === (width < 360 ? 20 : width < 760 ? 21 : 22))
+      const chrome = await page.evaluate(() => {
+        const header = document.querySelector('.app-header'), nav = document.querySelector('.bottom-nav')
+        const content = document.querySelector('.workspace-household-name')
+        const filter = element => getComputedStyle(element).backdropFilter || getComputedStyle(element).webkitBackdropFilter
+        const rgb = value => value.match(/[\d.]+/g).map(Number)
+        const lum = values => values.slice(0, 3).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4 }).reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0)
+        const dark = document.documentElement.dataset.theme === 'dark'
+        const contrast = (element, surface) => {
+          const color = rgb(getComputedStyle(element).color), bg = rgb(getComputedStyle(surface).backgroundColor)
+          const alpha = bg[3] ?? 1
+          const worstBackground = bg.slice(0, 3).map(channel => channel * alpha + (dark ? 255 : 0) * (1 - alpha))
+          const a = lum(color), b = lum(worstBackground)
+          return (Math.max(a, b) + .05) / (Math.min(a, b) + .05)
+        }
+        return { headerFixed: getComputedStyle(header).position === 'fixed', top: header.getBoundingClientRect().top,
+          headerBottom: header.getBoundingClientRect().bottom, contentTop: content.getBoundingClientRect().top,
+          headerFilter: filter(header), navFilter: filter(nav), headerBackground: getComputedStyle(header).backgroundColor,
+          navBackground: getComputedStyle(nav).backgroundColor, refreshText: document.querySelector('.sync-refresh').innerText.trim(),
+          minContrast: Math.min(contrast(header.querySelector('.wordmark'), header), ...[...nav.querySelectorAll('.nav-button')].map(button => contrast(button, nav))) }
+      })
+      measurements.push({ scope: 'glass-navigation', theme, viewport: width, ...chrome })
+      check(`${theme}/${label}: fixed header reserves content space`, chrome.headerFixed && chrome.top === 0 && chrome.contentTop >= chrome.headerBottom)
+      check(`${theme}/${label}: both navigation surfaces use translucent blur`, chrome.headerFilter.includes('blur(22px)') && chrome.navFilter.includes('blur(22px)') && chrome.headerBackground.includes('0.86') && chrome.navBackground.includes('0.86'))
+      check(`${theme}/${label}: glass navigation text meets AA even over contrasting content`, chrome.minContrast >= 4.5)
+      check(`${theme}/${label}: sync controls are icon-only without Supabase status label`, chrome.refreshText === '' && !await page.getByText('Tersimpan di Supabase', { exact: true }).count() && !await page.getByRole('button', { name: 'Muat ulang', exact: true }).count())
+      await page.evaluate(() => window.scrollTo(0, 400))
+      check(`${theme}/${label}: header stays at viewport top while scrolling`, await page.locator('.app-header').evaluate(header => header.getBoundingClientRect().top === 0))
+      if (label === 'mobile') {
+        const scrollFile = `glass-${theme}-mobile-scroll.png`
+        await page.screenshot({ path: fileURLToPath(new URL(scrollFile, output)), fullPage: false }); captures.push(scrollFile)
+      }
+      await page.evaluate(() => window.scrollTo(0, 0))
     }
   }
   await account(); await page.getByRole('button', { name: 'Keluar akun', exact: true }).click()

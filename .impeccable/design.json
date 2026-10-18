@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-17T17:50:27.777Z",
+  "generatedAt": "2026-10-18T06:43:38.362Z",
   "title": "Design System: MyHome",
   "extensions": {
     "colorMeta": {
@@ -16,8 +16,14 @@
       "button-hover": { "role": "neutral", "displayName": "Charcoal hover", "tonalRamp": ["oklch(15% 0.003 106)", "oklch(26% 0.003 106)", "oklch(38% 0.003 106)", "oklch(49% 0.003 106)", "oklch(61% 0.003 106)", "oklch(72% 0.003 106)", "oklch(84% 0.003 106)", "oklch(95% 0.003 106)"] },
       "button-white-hover": { "role": "neutral", "displayName": "White button hover", "tonalRamp": ["oklch(15% 0 0)", "oklch(26% 0 0)", "oklch(38% 0 0)", "oklch(49% 0 0)", "oklch(61% 0 0)", "oklch(72% 0 0)", "oklch(84% 0 0)", "oklch(95% 0 0)"] },
       "error": { "role": "error", "displayName": "Error red", "tonalRamp": ["oklch(15% 0.122 24)", "oklch(26% 0.122 24)", "oklch(38% 0.122 24)", "oklch(49% 0.122 24)", "oklch(61% 0.122 24)", "oklch(72% 0.122 24)", "oklch(84% 0.122 24)", "oklch(95% 0.122 24)"] },
-      "dock-light": { "role": "neutral", "displayName": "Light desktop dock", "tonalRamp": ["oklch(15% 0.005 286)", "oklch(26% 0.005 286)", "oklch(38% 0.005 286)", "oklch(49% 0.005 286)", "oklch(61% 0.005 286)", "oklch(72% 0.005 286)", "oklch(84% 0.005 286)", "oklch(95% 0.005 286)"] },
-      "dock-mobile-light": { "role": "neutral", "displayName": "Light mobile dock", "tonalRamp": ["oklch(15% 0.005 286)", "oklch(26% 0.005 286)", "oklch(38% 0.005 286)", "oklch(49% 0.005 286)", "oklch(61% 0.005 286)", "oklch(72% 0.005 286)", "oklch(84% 0.005 286)", "oklch(95% 0.005 286)"] },
+      "chrome-glass": { "role": "neutral", "displayName": "Light header and dock glass", "tonalRamp": ["oklch(15% 0 0)", "oklch(26% 0 0)", "oklch(38% 0 0)", "oklch(49% 0 0)", "oklch(61% 0 0)", "oklch(72% 0 0)", "oklch(84% 0 0)", "oklch(95% 0 0)"] },
+      "chrome-solid": { "role": "neutral", "displayName": "Light opaque chrome fallback", "tonalRamp": ["oklch(15% 0 0)", "oklch(26% 0 0)", "oklch(38% 0 0)", "oklch(49% 0 0)", "oklch(61% 0 0)", "oklch(72% 0 0)", "oklch(84% 0 0)", "oklch(95% 0 0)"] },
+      "chrome-border": { "role": "neutral", "displayName": "Light chrome edge", "tonalRamp": ["oklch(15% 0.002 106)", "oklch(26% 0.002 106)", "oklch(38% 0.002 106)", "oklch(49% 0.002 106)", "oklch(61% 0.002 106)", "oklch(72% 0.002 106)", "oklch(84% 0.002 106)", "oklch(95% 0.002 106)"] },
+      "chrome-muted": { "role": "neutral", "displayName": "Light readable dock secondary", "tonalRamp": ["oklch(15% 0.003 106)", "oklch(26% 0.003 106)", "oklch(38% 0.003 106)", "oklch(49% 0.003 106)", "oklch(61% 0.003 106)", "oklch(72% 0.003 106)", "oklch(84% 0.003 106)", "oklch(95% 0.003 106)"] },
+      "dark-chrome-glass": { "role": "neutral", "displayName": "Dark header and dock glass", "tonalRamp": ["oklch(15% 0.009 278)", "oklch(26% 0.009 278)", "oklch(38% 0.009 278)", "oklch(49% 0.009 278)", "oklch(61% 0.009 278)", "oklch(72% 0.009 278)", "oklch(84% 0.009 278)", "oklch(95% 0.009 278)"] },
+      "dark-chrome-solid": { "role": "neutral", "displayName": "Dark opaque chrome fallback", "tonalRamp": ["oklch(15% 0.009 278)", "oklch(26% 0.009 278)", "oklch(38% 0.009 278)", "oklch(49% 0.009 278)", "oklch(61% 0.009 278)", "oklch(72% 0.009 278)", "oklch(84% 0.009 278)", "oklch(95% 0.009 278)"] },
+      "dark-chrome-border": { "role": "neutral", "displayName": "Dark chrome edge", "tonalRamp": ["oklch(15% 0.007 286)", "oklch(26% 0.007 286)", "oklch(38% 0.007 286)", "oklch(49% 0.007 286)", "oklch(61% 0.007 286)", "oklch(72% 0.007 286)", "oklch(84% 0.007 286)", "oklch(95% 0.007 286)"] },
+      "dark-chrome-muted": { "role": "neutral", "displayName": "Dark readable dock secondary", "tonalRamp": ["oklch(15% 0.014 280)", "oklch(26% 0.014 280)", "oklch(38% 0.014 280)", "oklch(49% 0.014 280)", "oklch(61% 0.014 280)", "oklch(72% 0.014 280)", "oklch(84% 0.014 280)", "oklch(95% 0.014 280)"] },
       "dark-canvas": { "role": "neutral", "displayName": "Dark outer canvas", "tonalRamp": ["oklch(15% 0.008 277)", "oklch(26% 0.008 277)", "oklch(38% 0.008 277)", "oklch(49% 0.008 277)", "oklch(61% 0.008 277)", "oklch(72% 0.008 277)", "oklch(84% 0.008 277)", "oklch(95% 0.008 277)"] },
       "dark-surface": { "role": "neutral", "displayName": "Dark shell and dialog", "tonalRamp": ["oklch(15% 0.009 278)", "oklch(26% 0.009 278)", "oklch(38% 0.009 278)", "oklch(49% 0.009 278)", "oklch(61% 0.009 278)", "oklch(72% 0.009 278)", "oklch(84% 0.009 278)", "oklch(95% 0.009 278)"] },
       "dark-text": { "role": "neutral", "displayName": "Dark theme body text", "tonalRamp": ["oklch(15% 0.007 286)", "oklch(26% 0.007 286)", "oklch(38% 0.007 286)", "oklch(49% 0.007 286)", "oklch(61% 0.007 286)", "oklch(72% 0.007 286)", "oklch(84% 0.007 286)", "oklch(95% 0.007 286)"] },
@@ -76,6 +82,7 @@
       "pocket-amount": { "displayName": "Responsive pocket money", "purpose": "Exact Workspace.css override: clamp(16px, 4.8vw, 22px), tabular numerals and defensive overflow wrapping. Keeps final digits together in two-column pocket cards; supersedes fixed 20px/22px pocket sizes." }
     },
     "shadows": [
+      { "name": "app-header", "value": "0 4px 18px #2028340a", "purpose": "Separate the fixed header from scrolling content without elevating ordinary records." },
       { "name": "dock-desktop", "value": "0 8px 30px #20283412", "purpose": "Separate the floating desktop navigation from scrollable records." },
       { "name": "dock-mobile", "value": "0 -5px 24px #252a3505", "purpose": "Quiet separation at the fixed mobile dock edge." },
       { "name": "dialog", "value": "0 20px 70px #15151a30", "purpose": "Separate native household editor and confirmation sheets from background content in both themes." },
@@ -88,8 +95,35 @@
       { "name": "category-feedback", "value": ".15s ease", "purpose": "Native category tile selection feedback." },
       { "name": "progress-feedback", "value": ".25s ease-out", "purpose": "Transform-based progress updates." },
       { "name": "randomizer-spin", "value": "spin .7s linear infinite", "purpose": "Rotate the randomizer icon while choosing; spin ends at rotate(360deg)." },
+      { "name": "refresh-spin", "value": "refresh-spin 1s linear infinite", "purpose": "Rotate the connected refresh icon only while refreshing; the button disables during pending saves or refresh, and prefers-reduced-motion explicitly sets animation to none." },
       { "name": "reduced-motion", "value": ".01ms", "purpose": "Animation and transition durations under prefers-reduced-motion: reduce; scroll behavior becomes auto." }
     ],
+    "chrome": {
+      "surfaces": [".app-header", ".app-shell > .bottom-nav"],
+      "filter": "blur(22px) saturate(160%)",
+      "supportCondition": "(backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))",
+      "filterProperties": ["-webkit-backdrop-filter", "backdrop-filter"],
+      "fallback": "Opaque chrome-solid by default; @supports enables chrome-glass and both filters. prefers-reduced-transparency: reduce restores chrome-solid and sets both filters to none in either theme.",
+      "purpose": "The user's iOS-glass follow-up keeps underlying scrolling content perceptible on exactly two navigation surfaces, not cards, account panels, or dialogs.",
+      "headerLayout": {
+        "heightVariable": "--app-header-height",
+        "desktopHeight": "80px",
+        "mobileHeight": "72px",
+        "outerInsetVariable": "--app-shell-top-inset",
+        "desktopOuterInset": "32px",
+        "mobileOuterInset": "0px",
+        "position": "fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 60",
+        "desktopWidth": "calc(100% - 48px); max-width: 1040px",
+        "mobileWidth": "100%; max-width: 500px",
+        "horizontalPadding": "38px desktop; 20px through 759px; 18px through 359px",
+        "safeTop": "env(safe-area-inset-top, 0px) adds to header height and supplies top padding",
+        "shellTopPadding": "calc(var(--app-header-height) + env(safe-area-inset-top, 0px) + 16px - var(--app-shell-top-inset))",
+        "anchorClearance": "Document scroll-padding-top and content field/anchor scroll-margin-top reserve header height + safe top + 16px",
+        "accountPanelMaxHeight": "calc(100dvh - var(--app-header-height, 80px) - env(safe-area-inset-top, 0px) - 24px)",
+        "accountPanelAlignment": "right: 0 remains aligned to the account trigger"
+      },
+      "refresh": "Connected-only icon before theme/account; real store.refresh(), disabled while pending or refreshing, aria-busy while refreshing. Household-name paragraph remains below header; screen-reader-only status announces saving/loading. Visible Supabase saved label and text reload action removed; no preview no-op."
+    },
     "breakpoints": [
       { "name": "desktop-min", "value": "760px" },
       { "name": "mobile-max", "value": "759px" },
@@ -145,9 +179,9 @@
       "css": ".ds-amount{font-family:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:20px 22px 17px;border-radius:22px;background:var(--lavender,#f1f2fa)}.ds-amount>label{font-size:12px;color:#64646e}.ds-amount-wrap{display:flex;align-items:baseline;gap:10px;margin-top:9px}.ds-amount-wrap>span{font-size:22px;font-weight:500;color:#676771}.ds-amount-wrap input{font-family:inherit;background:transparent;color:var(--ink,#2c2c2b);border:0;width:100%;min-width:0;padding:0 0 3px;font-size:36px;line-height:1.3;font-weight:600;letter-spacing:-1px;font-variant-numeric:tabular-nums;border-radius:4px}.ds-amount-wrap input:focus-visible{outline:none}.ds-amount:has(input:focus-visible){outline:2px solid var(--focus,#526a79);outline-offset:3px}.ds-amount-wrap input::placeholder{color:#797986}.ds-amount>p{font-size:10px;color:#6d6d78;margin:10px 0 0}:host-context([data-theme=dark]) .ds-amount>label,:host-context([data-theme=dark]) .ds-amount>p{color:#b6b7ca}:host-context([data-theme=dark]) .ds-amount-wrap>span{color:#b4b5c7}:host-context([data-theme=dark]) .ds-amount-wrap input{color:#f0f0f7;caret-color:currentColor}:host-context([data-theme=dark]) .ds-amount-wrap input::placeholder{color:#a0a2b8}.ds-amount-wrap input.ds-amount-long{font-size:26px;letter-spacing:-.7px}@media(max-width:759px){.ds-amount-wrap input{font-size:32px}.ds-amount-wrap input.ds-amount-long{font-size:24px}}@media(max-width:359px){.ds-amount-wrap input{font-size:30px}.ds-amount-wrap input.ds-amount-long{font-size:22px}}"
     },
     {
-      "name": "Bottom Navigation", "kind": "nav", "refersTo": "navigation", "description": "Five equal-width destination buttons only. Catat lives in the home allowance footer and budget page. Preview omits fixed viewport positioning; its theme follows the document through :host-context.",
+      "name": "Bottom Navigation", "kind": "nav", "refersTo": "navigation", "description": "Five equal-width destination buttons only. Catat lives in the home allowance footer and budget page. Static visual preview deliberately omits fixed viewport positioning and app navigation handlers; its theme follows the document through :host-context. Matches the header/dock glass, WebKit filter, opaque unsupported-browser fallback, and reduced-transparency fallback.",
       "html": "<nav class=\"ds-nav\" aria-label=\"Navigasi utama\"><button class=\"ds-nav-button ds-nav-active\" aria-current=\"page\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg><span>Hari ini</span><i aria-hidden=\"true\"></i></button><button class=\"ds-nav-button\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4\"/></svg><span>Keuangan</span><i aria-hidden=\"true\"></i></button><button class=\"ds-nav-button\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 2v3M16 2v3M3 9h18M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/></svg><span>Kalender</span><i aria-hidden=\"true\"></i></button><button class=\"ds-nav-button\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/></svg><span>Rumah</span><i aria-hidden=\"true\"></i></button><button class=\"ds-nav-button\"><svg width=\"21\" height=\"21\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5\"/></svg><span>Berdua</span><i aria-hidden=\"true\"></i></button></nav>",
-      "css": ".ds-nav{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;max-width:620px;min-height:82px;padding:9px 16px;background:#f8f8fc;border:1px solid #eeeef2;border-radius:27px;box-shadow:0 8px 30px #20283412}.ds-nav-button{font-family:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55px;gap:5px;color:#6e6e78;background:transparent;border:0;padding:3px 0 0;cursor:pointer}.ds-nav-button>span{font-size:9px;line-height:1.2}.ds-nav-button>i{width:4px;height:4px;border-radius:50%;background:transparent}.ds-nav-active,.ds-nav-button:hover{color:var(--ink,#2c2c2b)}.ds-nav-active>i{background:var(--ink,#2c2c2b)}.ds-nav-active svg{fill:#2c2c2b12}.ds-nav button:focus-visible{outline:3px solid var(--focus,#526a79);outline-offset:4px}@media(max-width:759px){.ds-nav{max-width:500px;min-height:85px;padding:9px 15px calc(9px + env(safe-area-inset-bottom,0px));border-radius:25px 25px 0 0;border-width:1px 0 0;background:#f7f7fb;box-shadow:0 -5px 24px #252a3505}.ds-nav-button>span{font-size:8px}}@media(max-width:359px){.ds-nav{padding-left:7px;padding-right:7px}}:host-context([data-theme=dark]) .ds-nav{background:#25262f;border-color:#373945;box-shadow:0 8px 30px #0003}:host-context([data-theme=dark]) .ds-nav-button{color:#a9acbb}:host-context([data-theme=dark]) .ds-nav-active,:host-context([data-theme=dark]) .ds-nav-button:hover{color:#f0f0f7}:host-context([data-theme=dark]) .ds-nav-active>i{background:#f0f0f7}:host-context([data-theme=dark]) .ds-nav-active svg{fill:#ffffff12}"
+      "css": ".ds-nav{--ds-nav-solid:var(--chrome-solid,#fff);--ds-nav-glass:var(--chrome-glass,rgba(255,255,255,.86));--ds-nav-border:var(--chrome-border,rgba(44,44,43,.1));display:grid;grid-template-columns:repeat(5,1fr);align-items:center;max-width:620px;min-height:82px;padding:9px 16px;background:var(--ds-nav-solid);border:1px solid var(--ds-nav-border);border-radius:27px;box-shadow:0 8px 30px #20283412}.ds-nav-button{font-family:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55px;gap:5px;color:var(--chrome-muted,#474745);background:transparent;border:0;padding:3px 0 0;cursor:pointer}.ds-nav-button>span{font-size:9px;line-height:1.2}.ds-nav-button>i{width:4px;height:4px;border-radius:50%;background:transparent}.ds-nav-active,.ds-nav-button:hover{color:var(--workspace-text,#2c2c2b)}.ds-nav-active>i{background:var(--ink,#2c2c2b)}.ds-nav-active svg{fill:#2c2c2b12}.ds-nav button:focus-visible{outline:3px solid var(--focus,#526a79);outline-offset:4px}@media(max-width:759px){.ds-nav{max-width:500px;min-height:85px;padding:9px 15px calc(9px + env(safe-area-inset-bottom,0px));border-radius:25px 25px 0 0;border-width:1px 0 0;box-shadow:0 -5px 24px #252a3505}.ds-nav-button>span{font-size:8px}}@media(max-width:359px){.ds-nav{padding-left:7px;padding-right:7px}}:host-context([data-theme=dark]) .ds-nav{--ds-nav-solid:var(--chrome-solid,#1b1c21);--ds-nav-glass:var(--chrome-glass,rgba(27,28,33,.86));--ds-nav-border:var(--chrome-border,rgba(233,233,238,.14));box-shadow:0 8px 30px #0003}:host-context([data-theme=dark]) .ds-nav-button{color:var(--chrome-muted,#adaeb8)}:host-context([data-theme=dark]) .ds-nav-active,:host-context([data-theme=dark]) .ds-nav-button:hover{color:var(--workspace-text,#e9e9ee)}:host-context([data-theme=dark]) .ds-nav-active>i{background:#f0f0f7}:host-context([data-theme=dark]) .ds-nav-active svg{fill:#ffffff12}@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ds-nav{background:var(--ds-nav-glass);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%)}}@media(prefers-reduced-transparency:reduce){.ds-nav{background:var(--ds-nav-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}"
     },
     {
       "name": "Shopping Checkbox Row", "kind": "custom", "description": "Native checkbox drives the dark completion mark and struck-through task label.",
@@ -187,16 +221,18 @@
   ],
   "narrative": {
     "northStar": "White and charcoal, rounded cards and bottom navigation",
-    "overview": "The user's supplied reference defines this calm, readable household interface. Charcoal establishes emphasis, white keeps everyday records open, and pale lavender distinguishes secondary containers without competing with the content. This document records the implemented system, not a replacement direction.\n\nThe user-selected Poppins family serves all application typography. Household initials and semantic icons provide recognition without invented profile photography or display artwork. The reference defines the light theme; the user's explicit follow-up adds a matching dark theme. The surface brief retains ENERGY 2 / RHYTHM 2 / MOTION 1.\n\nThe approved household workspace extends this same visual language with wallet cards, transaction controls, managed agenda, bill simulation, and savings contributions. It is an interactive in-memory sample preview, not a new visual direction or a connected financial service. All household changes reset on reload; only the theme choice persists.",
+    "overview": "The user's supplied reference defines this calm, readable household interface. Charcoal establishes emphasis, white keeps everyday records open, and pale lavender distinguishes secondary containers without competing with the content. This document records the implemented system, not a replacement direction.\n\nThe user-selected Poppins family serves all application typography. Household initials and semantic icons provide recognition without invented profile photography or display artwork. The reference defines the light theme; the user's explicit follow-up adds a matching dark theme. The surface brief retains ENERGY 2 / RHYTHM 2 / MOTION 1.\n\nThe approved household workspace extends this same visual language with wallet cards, transaction controls, managed agenda, bill simulation, and savings contributions. It is an interactive in-memory sample preview, not a new visual direction or a connected financial service. All household changes reset on reload; only the theme choice persists.\n\nThe user's iOS-glass follow-up applies only to the fixed application header and bottom navigation. Translucent chrome keeps scrolling content perceptible without changing the white/charcoal/lavender identity, compact Poppins typography, or five-destination layout. Cards, account panels, and dialogs do not gain blur.",
     "keyCharacteristics": [
       "White/charcoal light surfaces and near-black/charcoal dark surfaces with lavender secondary grouping.",
       "Rounded feature cards beside flat, divided record lists.",
       "Large monetary figures, household initials, and semantic inline icons.",
-      "Five equal-width bottom destinations; expense entry stays in the home allowance summary and budget page."
+      "Five equal-width bottom destinations; expense entry stays in the home allowance summary and budget page.",
+      "Two frosted navigation surfaces, with opaque accessibility and compatibility fallbacks."
     ],
     "rules": [
       { "name": "The Contrast Rule", "body": "Charcoal and white establish primary emphasis; lavender supports secondary grouping rather than replacing selected-state contrast.", "section": "colors" },
-      { "name": "The Flat Records Rule", "body": "Expense, document, and contact rows use dividers rather than individual drop shadows.", "section": "elevation" }
+      { "name": "The Flat Records Rule", "body": "Expense, document, and contact rows use dividers rather than individual drop shadows.", "section": "elevation" },
+      { "name": "The Two-Surface Glass Rule", "body": "Only .app-header and .app-shell > .bottom-nav use backdrop blur. An @supports check for standard or WebKit backdrop-filter enables blur(22px) saturate(160%) with both declarations; unsupported browsers retain opaque chrome. prefers-reduced-transparency: reduce restores the theme's solid fill and disables both filters. This user-requested accent preserves orientation while records scroll, not a global glass identity.", "section": "elevation" }
     ],
     "dos": [
       "Do keep the reference-led white/charcoal hierarchy and quiet lavender secondary grouping.",
@@ -205,13 +241,15 @@
       "Do reuse labeled fields, formatted MoneyInput, six expense category radios, wallet/date/pocket controls, recorder identity, and full-width save in the shared transaction editor.",
       "Do retain the theme-aware text, labels, focus, selected states, and dialog treatments in both modes.",
       "Do use semantic workspace roles for added controls and keep wallet, budget, bill, and goal feedback tied to the same preview ledger.",
-      "Do retain the pocket-money clamp and native scrollable editor/confirmation sheets at narrow widths."
+      "Do retain the pocket-money clamp and native scrollable editor/confirmation sheets at narrow widths.",
+      "Do reserve fixed-header and safe-area clearance and retain opaque chrome for unsupported blur or reduced transparency."
     ],
     "donts": [
       "Don't replace the user-selected Poppins or introduce invented profile photography.",
       "Don't elevate every record into a shadowed card or turn every control into a pill.",
       "Don't replace inline SVG decoration with new raster assets or present sample/session-only data as persisted records.",
-      "Don't put expense recording back in the five-destination dock or confuse theme-preference storage with financial-data persistence."
+      "Don't put expense recording back in the five-destination dock or confuse theme-preference storage with financial-data persistence.",
+      "Don't extend the requested header/dock glass to cards, account panels, or dialogs, or expose a no-op refresh in preview mode."
     ]
   }
 }

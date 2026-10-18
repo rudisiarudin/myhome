@@ -1,7 +1,21 @@
+:root {
+  --app-header-height: 80px;
+  --app-shell-top-inset: 32px;
+  --chrome-glass: rgba(255, 255, 255, .86);
+  --chrome-solid: #fff;
+  --chrome-border: rgba(44, 44, 43, .1);
+  --chrome-muted: #474745;
+}
+html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-top, 0px) + 16px); }
 .app-background { min-height: 100dvh; padding: 32px 24px; }
-.app-shell { max-width: 1040px; min-height: calc(100dvh - 64px); margin: 0 auto; padding: 0 38px 114px; background: #fff; border-radius: 36px; position: relative; }
-.app-header { height: 91px; display: flex; align-items: center; justify-content: space-between; }
+.app-shell { max-width: 1040px; min-height: calc(100dvh - 64px); margin: 0 auto; padding: calc(var(--app-header-height) + env(safe-area-inset-top, 0px) + 16px - var(--app-shell-top-inset)) 38px 114px; background: #fff; border-radius: 36px; position: relative; }
+.app-header { position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 60; width: calc(100% - 48px); max-width: 1040px; height: calc(var(--app-header-height) + env(safe-area-inset-top, 0px)); padding: env(safe-area-inset-top, 0px) 38px 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--chrome-border); box-shadow: 0 4px 18px #2028340a; }
 .header-actions { display: flex; align-items: center; gap: 10px; }
+.sync-refresh { color: var(--workspace-text); }
+.sync-refresh[aria-busy="true"] svg { animation: refresh-spin 1s linear infinite; }
+@keyframes refresh-spin { to { transform: rotate(360deg); } }
+.workspace-household-name { color: var(--muted); font-size: 10px; line-height: 1.6; margin-bottom: 16px; overflow-wrap: anywhere; }
+.page-content :is(input, select, textarea, [id]) { scroll-margin-top: calc(var(--app-header-height) + env(safe-area-inset-top, 0px) + 16px); }
 .theme-toggle { background: #f3f3f5; }
 .theme-toggle:hover { background: #e9e9ee; }
 .wordmark { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; font-size: 20px; font-weight: 700; letter-spacing: -.6px; }
@@ -270,9 +284,10 @@
 }
 
 @media (max-width: 759px) {
+  :root { --app-header-height: 72px; --app-shell-top-inset: 0px; }
   .app-background { padding: 0; background: #fff; }
-  .app-shell { min-height: 100dvh; max-width: 500px; border-radius: 0; padding: 0 20px calc(130px + env(safe-area-inset-bottom, 0px)); }
-  .app-header { height: 72px; }
+  .app-shell { min-height: 100dvh; max-width: 500px; border-radius: 0; padding: calc(var(--app-header-height) + env(safe-area-inset-top, 0px) + 16px) 20px calc(130px + env(safe-area-inset-bottom, 0px)); }
+  .app-header { width: 100%; max-width: 500px; padding-left: 20px; padding-right: 20px; }
   .wordmark { font-size: 19px; }
   .role-switch { padding: 2.5px; border-radius: 12px; }
   .role-switch button { min-width: 50px; min-height: 38px; font-size: 10.5px; border-radius: 9px; }
@@ -370,6 +385,7 @@
   .header-actions .role-switch button { min-width: 46px; }
   .wordmark { font-size: 19px; gap: 5px; }
   .app-shell { padding-left: 18px; padding-right: 18px; }
+  .app-header { padding-left: 18px; padding-right: 18px; }
   .greeting-card { padding-left: 20px; }
   .greeting-copy h1 { font-size: 20px; }
   .greeting-signature { display: none; }
@@ -495,3 +511,31 @@
 [data-theme="dark"] .form-error { color: #ffb2b2; }
 [data-theme="dark"] .notice { background: #e8e8f0; color: #25252e; }
 [data-theme="dark"] .skip-link { background: #262730; border-color: #aeb2c2; }
+
+/* User-requested iOS glass is limited to the two fixed navigation surfaces. */
+[data-theme="dark"] {
+  --chrome-glass: rgba(27, 28, 33, .86);
+  --chrome-solid: #1b1c21;
+  --chrome-border: rgba(233, 233, 238, .14);
+  --chrome-muted: #adaeb8;
+}
+.app-header,
+.app-shell > .bottom-nav { background: var(--chrome-solid); border-color: var(--chrome-border); }
+.bottom-nav .nav-button { color: var(--chrome-muted); }
+.bottom-nav .nav-button.active,
+.bottom-nav .nav-button:hover { color: var(--workspace-text); }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app-header,
+  .app-shell > .bottom-nav {
+    background: var(--chrome-glass);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .app-header,
+  .app-shell > .bottom-nav { background: var(--chrome-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sync-refresh[aria-busy="true"] svg { animation: none; }
+}

@@ -1,6 +1,6 @@
 ---
 name: MyHome
-description: Poppins household UI with light/dark themes, rounded cards, and five-item bottom navigation.
+description: Poppins household UI with light/dark themes, rounded cards, and glass header/five-item bottom navigation.
 colors:
   ink: "#2c2c2b"
   white: "#fff"
@@ -14,8 +14,14 @@ colors:
   button-hover: "#474745"
   button-white-hover: "#e5e5e5"
   error: "#973e3e"
-  dock-light: "#f8f8fc"
-  dock-mobile-light: "#f7f7fb"
+  chrome-glass: "rgba(255, 255, 255, .86)"
+  chrome-solid: "#fff"
+  chrome-border: "rgba(44, 44, 43, .1)"
+  chrome-muted: "#474745"
+  dark-chrome-glass: "rgba(27, 28, 33, .86)"
+  dark-chrome-solid: "#1b1c21"
+  dark-chrome-border: "rgba(233, 233, 238, .14)"
+  dark-chrome-muted: "#adaeb8"
   dark-canvas: "#111216"
   dark-surface: "#1b1c21"
   dark-text: "#e9e9ee"
@@ -161,6 +167,7 @@ spacing:
   mobile-gutter: "24px"
   dialog-inset: "28px"
   columns: "32px"
+  header-clearance: "16px"
 components:
   button-primary:
     backgroundColor: "{colors.ink}"
@@ -280,14 +287,37 @@ components:
     textColor: "{colors.dark-text}"
     rounded: "{rounded.tile}"
     size: "44px"
+  app-header:
+    backgroundColor: "{colors.chrome-glass}"
+    textColor: "{colors.ink}"
+    height: "calc(80px + env(safe-area-inset-top, 0px))"
+    padding: "env(safe-area-inset-top, 0px) 38px 0"
+  app-header-dark:
+    backgroundColor: "{colors.dark-chrome-glass}"
+    textColor: "{colors.dark-text}"
+  app-header-mobile:
+    height: "calc(72px + env(safe-area-inset-top, 0px))"
+    padding: "env(safe-area-inset-top, 0px) 20px 0"
+  app-header-narrow:
+    padding: "env(safe-area-inset-top, 0px) 18px 0"
+  app-header-opaque:
+    backgroundColor: "{colors.chrome-solid}"
+  app-header-dark-opaque:
+    backgroundColor: "{colors.dark-chrome-solid}"
   navigation:
-    backgroundColor: "{colors.dock-light}"
+    backgroundColor: "{colors.chrome-glass}"
+    textColor: "{colors.chrome-muted}"
     rounded: "{rounded.dock}"
     padding: "9px 16px"
   navigation-dark:
-    backgroundColor: "{colors.dark-dock}"
+    backgroundColor: "{colors.dark-chrome-glass}"
+    textColor: "{colors.dark-chrome-muted}"
     rounded: "{rounded.dock}"
     padding: "9px 16px"
+  navigation-opaque:
+    backgroundColor: "{colors.chrome-solid}"
+  navigation-dark-opaque:
+    backgroundColor: "{colors.dark-chrome-solid}"
 ---
 
 # Design System: MyHome
@@ -302,11 +332,14 @@ The user-selected Poppins family serves all application typography. Household in
 
 The production entrypoint extends this same visual language with email Auth, profile initialization, household create/join, and the existing five-tab workspace. Household records persist in Supabase's `myhome` schema, with RLS and transactional finance RPCs; new households start empty rather than receiving sample records. This is an ordinary extension of MyHome, not a new visual world. Existing in-memory preview providers remain test/development fixtures only and are never a fallback for failed production connections. Banking, money movement, and photo/document storage uploads remain outside scope.
 
+The user's iOS-glass follow-up applies only to the fixed application header and bottom navigation. Translucent chrome keeps scrolling content perceptible without changing the white/charcoal/lavender identity, compact Poppins typography, or five-destination layout. Cards, account panels, and dialogs do not gain blur.
+
 **Key Characteristics:**
 - White/charcoal light surfaces and near-black/charcoal dark surfaces with lavender secondary grouping.
 - Rounded feature cards beside flat, divided record lists.
 - Large monetary figures, household initials, and semantic inline icons.
 - Five equal-width bottom destinations; expense entry stays in the home allowance summary and budget page.
+- Two frosted navigation surfaces, with opaque accessibility and compatibility fallbacks.
 
 ## Colors
 
@@ -324,7 +357,9 @@ The palette is predominantly neutral; lavender provides a quiet secondary surfac
 - **Slate focus:** visible keyboard outlines, not a brand accent.
 - **Error red:** validation and destructive feedback only, not a primary action color.
 
-The `dark-*` frontmatter entries record the implemented dark overrides. Near-black canvas surrounds the charcoal shell and dialog; feature cards are a lighter charcoal, and lavender becomes a dark tinted secondary surface. Dark body text, muted copy, dividers, and keyboard focus replace the corresponding light roles. Primary actions and selected controls invert to light fills with dark text; the dock's active label, icon, and dot use the dark-active token. Dialog field borders and validation text also have explicit dark variants.
+The `dark-*` frontmatter entries record the implemented dark overrides. Near-black canvas surrounds the charcoal shell and dialog; feature cards are a lighter charcoal, and lavender becomes a dark tinted secondary surface. Dark body text, muted copy, dividers, and keyboard focus replace the corresponding light roles. Primary actions and selected controls invert to light fills with dark text; the dock's active label/icon use workspace text, while its dot retains dark-active. Dialog field borders and validation text also have explicit dark variants.
+
+The `chrome-*` colors and their dark variants map to `--chrome-glass`, `--chrome-solid`, `--chrome-border`, and `--chrome-muted` in `src/App.css`. Header and dock share the translucent fill and quiet border; solid fills are the default until blur support is established and return for reduced transparency. Dock secondary labels/icons use chrome-muted for readability over moving content, not the ordinary muted-copy color. These are neutral navigation roles, not new brand colors.
 
 ### Semantic workspace roles
 `src/features/household/Workspace.css` defines the six `--workspace-*` variables. Frontmatter records each light value under the matching name and each dark value under `dark-workspace-*`; these are semantic aliases, not extra brand colors.
@@ -384,11 +419,11 @@ Pocket money uses the exact `pocket-amount` clamp at every viewport inside the b
 
 ## Layout
 
-Desktop has an outer inset (32px vertical / 24px horizontal), a centered white shell capped at (1040px), and shell padding (0 38px 114px). The header is (91px) tall. The home work area uses (1.12fr 1fr) columns with a (42px) gutter; recent transactions span that grid. Calendar content is capped at (650px). Reusable household workspaces now supply the finance, calendar, bills, goals, and transaction views; older detail/expense-grid CSS is not their layout recipe.
+Desktop has an outer inset (32px vertical / 24px horizontal), a centered white shell capped at (1040px), and shell side/bottom padding (38px / 114px). The fixed application header sits at viewport top (0), centered with width (100% - 48px), maximum width (1040px), and horizontal padding (38px). Its height is `--app-header-height` (80px) plus `env(safe-area-inset-top, 0px)`; that safe inset also supplies its top padding. Shell top padding reserves header height plus safe top plus (16px), minus `--app-shell-top-inset` (32px desktop) so the outer inset is not counted twice. Document scroll-padding and content field/anchor scroll-margin retain the same header-plus-safe-top-plus-(16px) clearance. The home work area uses (1.12fr 1fr) columns with a (42px) gutter; recent transactions span that grid. Calendar content is capped at (650px). Reusable household workspaces now supply the finance, calendar, bills, goals, and transaction views; older detail/expense-grid CSS is not their layout recipe.
 
 Login and household onboarding use a compact version of the same shell, capped at (720px), with (36px) corners, (32px) vertical margins, and padding (0 38px 24px). The wordmark and existing theme control occupy its (91px) header; one form column capped at (420px) follows, with content margins (38px auto 64px). The primary action follows labeled fields; account/recovery actions sit below. There is no five-tab navigation before household access. Through (759px), this shell fills at least the viewport height, drops its margin/corners, uses (24px) horizontal insets and an (82px) header, and brings the form top margin to (32px); through (359px), insets reduce to (18px). These are local access-flow dimensions within the established composition.
 
-At widths up to (759px), the surround disappears and the shell becomes square-edged, capped at (500px), with padding (0 24px 115px). Home sections stack; bills and decision cards become one column. Shortcuts, pocket cards, six category radios, and the seven-day strip retain their compact grids. Payment summaries change from one desktop column to two mobile columns. The header reduces to (82px).
+At widths up to (759px), the surround disappears and the shell becomes square-edged, capped at (500px), with horizontal padding (20px) and bottom padding (130px plus safe bottom). The fixed application header uses width (100%), maximum width (500px), and horizontal padding (20px). `--app-header-height` becomes (72px), and `--app-shell-top-inset` becomes (0px); shell top padding therefore reserves header height plus safe top plus (16px). Header and shell horizontal insets reduce to (18px) through (359px). Home sections stack; bills and decision cards become one column. Shortcuts, pocket cards, six category radios, and the seven-day strip retain their compact grids. Payment summaries change from one desktop column to two mobile columns. These application-header rules do not replace the separate access-flow header dimensions above.
 
 Wallets use three columns by default, two from (600px) through (899px), and one through (599px). Wallet padding changes from (19px 21px 12px) to (16px 20px 10px) in that last range. Daily/monthly budget and pocket cards remain two-column, as do paired editor fields. History filters use three columns, changing to two through (599px), with month spanning both. At that breakpoint transaction dates stack and metadata loses its desktop left indent. Calendar week/date controls sit above seven native day buttons; through (399px) the strip expands into its side margins to retain (44px) day targets.
 
@@ -398,15 +433,17 @@ Urusan Rumah uses the same outlined composer before its record list. Desktop col
 
 Below (360px), shell gutters reduce to (18px), dialog gutters to (19px), and selected type/icon sizes compress. Page-heading avatars and the greeting signature are hidden, but the five navigation destinations remain present. The document body has a minimum width of (320px).
 
-The desktop dock floats (20px) above the viewport, capped at (620px), with width (100% - 64px) and minimum height (82px). Its grid is `repeat(5, 1fr)` at every viewport: navigation only, no centered add action. Mobile docks to the bottom, capped at (500px), with minimum height (85px) and safe-area-aware bottom padding. Content reserves bottom space; notices sit above the dock. The home allowance footer aligns spending context with its Catat button; Keuangan has Pemasukan/Pengeluaran/Transfer actions and a Catat baru history action. Header actions now group the account avatar and theme button with a (10px) gap, reducing to (7px) below (360px); the old visible role segments are retired.
+The desktop dock floats (20px) above the viewport, capped at (620px), with width (100% - 64px) and minimum height (82px). Its grid is `repeat(5, 1fr)` at every viewport: navigation only, no centered add action. Mobile docks to the bottom, capped at (500px), with minimum height (85px) and safe-area-aware bottom padding. Content reserves bottom space; notices sit above the dock. The home allowance footer aligns spending context with its Catat button; Keuangan has Pemasukan/Pengeluaran/Transfer actions and a Catat baru history action. Header actions place the connected refresh icon before the existing theme button and account avatar, with a (10px) gap, reducing to (7px) below (360px); the old visible role segments are retired. Glass changes material, not dock placement or destinations.
 
 ## Elevation & Depth
 
-Cards and ordinary records are flat: tonal contrast, spacing, and thin dividers carry most hierarchy. Shadows are restricted to the fixed dock and modal. Exact light desktop/mobile dock shadows, the dark dock shadow, and the dialog shadow live in the sidecar. Dark mode uses the same dock shadow at every width. The dialog uses a theme-specific translucent backdrop, not backdrop blur.
+Cards and ordinary records are flat: tonal contrast, spacing, and thin dividers carry most hierarchy. The fixed application header adds a quiet edge shadow (`0 4px 18px #2028340a`) to separate scrolling content from persistent controls. Exact dock, dialog, and temporary account-panel shadows live in the sidecar. Dark mode uses the same dock shadow at every width. The dialog uses a theme-specific translucent backdrop, not backdrop blur.
+
+**The Two-Surface Glass Rule.** Only `.app-header` and `.app-shell > .bottom-nav` use backdrop blur. An `@supports` check for standard or WebKit backdrop-filter enables `blur(22px) saturate(160%)` with both declarations; unsupported browsers retain opaque chrome. `prefers-reduced-transparency: reduce` restores the theme's solid fill and disables both filters. This user-requested accent preserves orientation while records scroll, not a global glass identity.
 
 **The Flat Records Rule.** Expense, document, and contact rows use dividers rather than individual drop shadows.
 
-Feedback transitions are short: most controls use (.18s ease), category tiles (.15s ease), and progress (.25s ease-out). Shortcut hover lifts by (-3px), with scale feedback on press. Only the randomizer spins (.7s linear infinite) while choosing. Reduced-motion preferences collapse animation and transition durations to (.01ms).
+Feedback transitions are short: most controls use (.18s ease), category tiles (.15s ease), and progress (.25s ease-out). Shortcut hover lifts by (-3px), with scale feedback on press. The randomizer spins (.7s linear infinite) while choosing; the refresh icon spins (1s linear infinite) only during a refresh. Reduced-motion preferences collapse animation and transition durations to (.01ms), and explicitly disable refresh spinning.
 
 ## Shapes
 
@@ -434,12 +471,17 @@ Mobile feature corners adjust locally: greeting (29px), shortcuts (28px), dock (
 
 ### Navigation
 - Only the five destinations occupy the fixed bottom dock, in equal columns; no Catat or add button is present there.
-- Active destinations use charcoal in light mode or the dark-active token in dark mode, a small dot, and heavier icon stroke (2.6 versus 1.9). Labels remain visible. Sub-section controls invert from charcoal-on-pale tracks to light selected fills on dark tracks.
+- Header and dock share the frontmatter's chrome fill/border and the two-surface filter/fallback contract. Secondary dock text/icons use chrome-muted in each theme; existing active indicators and keyboard focus remain visible.
+- Active destinations use workspace text in each theme, a small dot (dark-active in dark mode), and heavier icon stroke (2.6 versus 1.9). Labels remain visible. Sub-section controls invert from charcoal-on-pale tracks to light selected fills on dark tracks.
 - Keuangan subpanes are Ringkasan, Dompet, and Riwayat; their buttons use `aria-pressed`, as do the three transaction-kind choices. They do not create extra bottom-nav destinations. History provides title search, wallet/kind/month filters, Reset filter, result count, and a genuine empty state. Income rows use semantic positive text/icons; transfers and savings stay separately labeled rather than appearing as household consumption.
 
 ### Theme Toggle
 - A (44px) icon button beside the account avatar uses Moon in light mode and Sun in dark mode (20px). Its accessible label and title name the destination theme: Gunakan mode gelap or Gunakan mode terang. `aria-pressed` reports whether dark mode is active.
 - Light default/hover fills are (#f3f3f5 / #e9e9ee); dark default/hover fills are (#2b2c34 / #383a46). Layout and typography stay unchanged across themes.
+
+### Header Refresh and Household Context
+- Connected mode places a (44px) icon-only refresh control before theme/account, with a (19px) refresh glyph, accessible label `Muat ulang data`, and title `Refresh data`. It calls the real store refresh, disables during saving or refreshing, exposes refresh busy state, and spins only while refreshing. Reduced motion removes the spin; preview/demo omits the control rather than exposing a no-op.
+- The old visible Supabase saved label and text `Muat ulang` action are removed. The household name remains a small paragraph below the header (10px / 1.6, muted, wrapping, 16px bottom margin). Saving/loading announcements remain in a screen-reader-only status region; refresh failures retain their visible alert and recovery guidance.
 
 ### Editor and Confirmation Sheets
 - `Modal` in `src/features/household/ui.tsx` is the native dialog primitive for all household editors. Desktop is centered, capped at (470px), width (100% - 32px), with (28px) content padding and maximum height (100dvh - 32px). Mobile becomes a bottom sheet capped at (500px), with a visible handle, native scroll, safe-area padding, and maximum height (100dvh - 20px). Workspace horizontal insets become (22px) through (599px), then (18px) through (359px). Confirmation caps at (410px), including mobile.
@@ -455,12 +497,13 @@ Mobile feature corners adjust locally: greeting (29px), shortcuts (28px), dock (
 - `src/main.tsx` mounts `ConnectionRoot`, which restores the Auth session before loading identity and household membership. Email/password login, signup, email-confirmation guidance when required, reset-email request, and recovery-password update use Supabase Auth. Missing configuration, session/identity failures, and household-load failures show configuration or recovery states, never sample household fallback.
 - Onboarding explicitly calls `initialize_profile` before `create_household` or `join_household`. Creation collects household name and member role; joining accepts the partner's invitation code. The household supports at most two members and begins without seeded records. Returning members proceed to their existing household rather than repeating setup.
 - Access forms reuse the existing segmented controls, labeled fields, neutral primary action, theme-aware borders, and lavender status messages. Inputs have minimum height (50px), corners (13px), padding (13px), and (16px) text through (759px). Busy fieldsets disable inputs/actions, action labels explain progress, errors use alerts, and confirmation/recovery feedback uses status text. No new imagery or shipping raster assets were created.
-- Connected records use schema `myhome`: finance mutations use transactional RPCs; household tables use RLS-protected reads/writes. The server sets transaction authorship from the authenticated session. Wallets, transactions, budgets, goals, bills, agenda, documents, contacts, chores, shopping, wishlist places, and food/date ideas persist rather than resetting on reload. Background reads follow Realtime events when enabled, window focus, manual Muat ulang, and (30-second) polling; this is not offline storage or a guarantee of managed Realtime delivery.
+- Connected records use schema `myhome`: finance mutations use transactional RPCs; household tables use RLS-protected reads/writes. The server sets transaction authorship from the authenticated session. Wallets, transactions, budgets, goals, bills, agenda, documents, contacts, chores, shopping, wishlist places, and food/date ideas persist rather than resetting on reload. Background reads follow Realtime events when enabled, window focus, the header refresh icon, and (30-second) polling; this is not offline storage or a guarantee of managed Realtime delivery.
 - Verification boundary: `.impeccable/review/connected-results.json` records (63) passing local browser checks using mocked Auth/PostgREST backed by actual SQL/RLS in PGlite; (36) domain/SQL checks were reported passing. These are local evidence, not managed-Supabase certification. The configured key returns `Invalid API key`, so managed email Auth, PostgREST/RLS, Realtime, and multi-connection behavior remain unverified pending valid configuration and a real two-account smoke test.
 
 ### Account Avatar and Profile Panel
+- The home greeting card uses the first word of each profile name for its salutation and couple signature. The signature orders istri before suami, so the user's household reads Ayu & Rudi regardless of which account is active. Full names remain intact in stored profiles, the account menu, and other identity labels; the display helper does not write profile data.
 - AccountProvider supplies current profile and household members. The header no longer presents two role buttons. ProfileAvatar renders a provided avatarUrl inside a circular clipped surface using object-fit cover; missing/failed URLs show up to two initials rather than invented photography. Header avatars are (40px) inside a minimum (44px) trigger; existing member/recorder size classes remain context-specific.
-- The profile panel is nonmodal, with close, outside-click, Escape, Tab, and focus-return behavior. Its (280px) width is capped by the viewport, with (22px) corners, (19px) inset, and right edge aligned to the rightmost account control (`right: 0`). The existing theme-before-avatar header order is preserved. Height is bounded to (100dvh - 115px), with vertical scrolling for profile and invitation controls. Below (360px), width becomes (264px), inset (17px). Light surface is white, dark surface (#25262f); the two shadows in the sidecar mark this temporary elevation.
+- The profile panel is nonmodal, with close, outside-click, Escape, Tab, and focus-return behavior. Its (280px) width is capped by the viewport, with (22px) corners, (19px) inset, and right edge aligned to the rightmost account control (`right: 0`). Refresh precedes the preserved theme-before-avatar order. Height is bounded to `calc(100dvh - var(--app-header-height, 80px) - env(safe-area-inset-top, 0px) - 24px)`, with vertical scrolling for profile and invitation controls beneath the fixed header. Below (360px), width becomes (264px), inset (17px). Light surface is white, dark surface (#25262f); the two shadows in the sidecar mark this temporary elevation. The panel remains opaque, without blur.
 - The connected panel edits the profile name and optional HTTPS avatar URL through `initialize_profile`, with pending, error, and saved feedback. No photo upload or storage integration is supplied; missing/failed images retain initials. An owner with fewer than two household members can issue a (32-character) invitation, valid for (48 hours) and single use; generating another invalidates the previous code. Copy supports manual selection if clipboard access fails. Signout removes household access without removing membership.
 - Preview-only account choices remain explicitly labeled simulation in test/development fixtures, not production login. Connected accounts hide and disable preview switching. Greeting, member avatars, and recorder identity use persisted profile data; editing an existing transaction keeps its original recorder.
 
@@ -474,9 +517,11 @@ Mobile feature corners adjust locally: greeting (29px), shortcuts (28px), dock (
 - **Do** retain the theme-aware text, labels, focus, selected states, and dialog treatments in both modes.
 - **Do** use semantic workspace roles for added controls and keep wallet, budget, bill, and goal feedback tied to the same persisted household ledger.
 - **Do** retain the pocket-money clamp and native scrollable editor/confirmation sheets at narrow widths.
+- **Do** reserve fixed-header and safe-area clearance and retain opaque chrome for unsupported blur or reduced transparency.
 
 ### Don't:
 - **Don't** replace the user-selected Poppins or introduce invented profile photography.
 - **Don't** elevate every record into a shadowed card or turn every control into a pill.
 - **Don't** replace inline SVG decoration with new raster assets, present test/development fixtures as real household records, or fall back to a preview when a production connection fails.
 - **Don't** put expense recording back in the five-destination dock or confuse theme-preference storage with financial-data persistence.
+- **Don't** extend the requested header/dock glass to cards, account panels, or dialogs, or expose a no-op refresh in preview mode.

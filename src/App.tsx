@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
-import { CalendarDays, Check, ChevronRight, Copy, Heart, Home, House, Moon, Plus, ShoppingBag, Sparkles, Sun, Trash2, Utensils, Wallet } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, Copy, Heart, Home, House, Moon, Plus, RefreshCw, ShoppingBag, Sparkles, Sun, Trash2, Utensils, Wallet } from 'lucide-react'
 import { AppLogoIcon } from './components/AppLogo'
 import type { FoodIdea, ShoppingItem, ScheduleEvent } from './types'
 import { useHousehold } from './features/household/context'
 import { formatDate, spentIn, TODAY, makeId } from './features/household/model'
 import { useAccount } from './features/account/context'
 import { AccountMenu, MemberAvatars as Avatars } from './features/account/ProfileAvatar'
+import { householdShortNames, shortName } from './features/account/display'
 import { BudgetWorkspace, CalendarWorkspace, GoalsWorkspace, TransactionList } from './features/household/Workspace'
 import { HouseWorkspace } from './features/household/HouseWorkspace'
 import { DebtReportsWorkspace } from './features/household/DebtReportsWorkspace'
@@ -302,21 +303,22 @@ export default function App() {
           myhome<span className="dot-green">.</span>
         </a>
         <div className="header-actions">
+          {!store.isPreview && <button className="icon-button sync-refresh" aria-label="Muat ulang data" title="Refresh data" disabled={store.pending || store.refreshing} aria-busy={store.refreshing} onClick={() => void store.refresh()}><RefreshCw size={19} aria-hidden="true" /></button>}
           <button className="theme-toggle icon-button" aria-label={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} title={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} aria-pressed={theme === 'dark'} onClick={() => setTheme(value => value === 'light' ? 'dark' : 'light')}>
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
           <AccountMenu />
         </div>
       </header>
-      {store.isPreview ? <div className="workspace-preview"><span>Pratinjau interaktif · Data contoh</span><span>Tanpa database</span></div> : <div className="workspace-preview"><span>{connection?.householdName ?? 'Rumah bersama'}</span><div className="sync-actions"><span role="status">{store.pending ? 'Menyimpan…' : store.refreshing ? 'Memuat data…' : 'Tersimpan di Supabase'}</span><button className="text-button" disabled={store.pending || store.refreshing} onClick={() => void store.refresh()}>Muat ulang</button></div></div>}
+      {store.isPreview ? <div className="workspace-preview"><span>Pratinjau interaktif · Data contoh</span><span>Tanpa database</span></div> : <><p className="workspace-household-name">{connection?.householdName ?? 'Rumah bersama'}</p><span className="sr-only" role="status">{store.pending ? 'Menyimpan perubahan…' : store.refreshing ? 'Memuat data…' : ''}</span></>}
       {store.refreshError && <div className="connection-warning" role="alert">{store.refreshError}<p>Muat ulang sebelum membuat perubahan berikutnya.</p></div>}
 
       {activeTab === 'today' ? <>
         <section className="greeting-card">
           <Waves />
-          <div className="greeting-copy"><p>Hai, {currentProfile.name}!</p><h1>Rumah kecil,<br />cerita kita.</h1><p className="greeting-date">{formatDate(TODAY, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
+          <div className="greeting-copy"><p>Hai, {shortName(currentProfile.name)}!</p><h1>Rumah kecil,<br />cerita kita.</h1><p className="greeting-date">{formatDate(TODAY, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
           <Avatars />
-          <span className="greeting-signature"><Heart size={15} /> {members.map(member => member.name).join(' & ')}</span>
+          <span className="greeting-signature"><Heart size={15} /> {householdShortNames(members)}</span>
         </section>
 
         <div className="home-layout">
