@@ -296,10 +296,10 @@ export default function App() {
       <header className="app-header">
         <a href="#main-content" className="wordmark" onClick={() => navigate('today')} aria-label="MyHome, kembali ke Hari ini"><House size={21} strokeWidth={2.4} />myhome<span>.</span></a>
         <div className="header-actions">
-          <AccountMenu />
           <button className="theme-toggle icon-button" aria-label={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} title={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} aria-pressed={theme === 'dark'} onClick={() => setTheme(value => value === 'light' ? 'dark' : 'light')}>
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
+          <AccountMenu />
         </div>
       </header>
       {store.isPreview ? <div className="workspace-preview"><span>Pratinjau interaktif · Data contoh</span><span>Tanpa database</span></div> : <div className="workspace-preview"><span>{connection?.householdName ?? 'Rumah bersama'}</span><div className="sync-actions"><span role="status">{store.pending ? 'Menyimpan…' : store.refreshing ? 'Memuat data…' : 'Tersimpan di Supabase'}</span><button className="text-button" disabled={store.pending || store.refreshing} onClick={() => void store.refresh()}>Muat ulang</button></div></div>}
