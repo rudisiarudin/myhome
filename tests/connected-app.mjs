@@ -224,6 +224,7 @@ try {
   await page.getByRole('button', { name: 'Pengeluaran', exact: true }).click()
   await page.getByLabel('Berapa yang keluar?').fill('10000')
   await page.getByLabel('Untuk apa?', { exact: true }).fill('Belanja uji')
+  check('mobile amount entry uses compact 32px type', await page.getByLabel('Berapa yang keluar?').evaluate(input => getComputedStyle(input).fontSize) === '32px')
   delayedWrite = true
   await page.getByRole('button', { name: 'Simpan pengeluaran', exact: true }).click()
   await page.getByRole('button', { name: 'Menyimpan…', exact: true }).waitFor()
@@ -392,6 +393,8 @@ try {
       const file = `connected-${theme}-${label}.png`
       await page.screenshot({ path: fileURLToPath(new URL(file, output)), fullPage: true }); captures.push(file)
       check(`${theme}/${label}: connected layout has no horizontal overflow`, await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+      check(`${theme}/${label}: greeting uses compact responsive type`, await page.locator('.greeting-copy h1').evaluate(heading => parseFloat(getComputedStyle(heading).fontSize)) === (width < 360 ? 20 : width < 760 ? 22 : 24))
+      check(`${theme}/${label}: daily allowance does not enlarge on narrow screens`, await page.locator('.allowance-number').evaluate(amount => parseFloat(getComputedStyle(amount).fontSize)) === (width < 360 ? 20 : width < 760 ? 21 : 22))
     }
   }
   await account(); await page.getByRole('button', { name: 'Keluar akun', exact: true }).click()
@@ -402,6 +405,8 @@ try {
       await page.setViewportSize({ width, height }); await page.evaluate(() => document.fonts.ready)
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
       measurements.push(await page.locator('.access-shell').evaluate(shell => ({ viewport: innerWidth, height: innerHeight, theme: document.documentElement.dataset.theme, foreground: getComputedStyle(shell).color, background: getComputedStyle(shell).backgroundColor, font: getComputedStyle(shell).fontFamily })))
+      check(`${theme}/${label}: access heading is reduced to 22–24px`, await page.locator('.access-content h1').evaluate(heading => parseFloat(getComputedStyle(heading).fontSize)) === (width < 360 ? 22 : 24))
+      if (width < 760) check(`${theme}/${label}: form input stays 16px to avoid mobile focus zoom`, await page.getByLabel('Email', { exact: true }).evaluate(input => getComputedStyle(input).fontSize) === '16px')
       const contrastIssues = await page.locator('.access-shell').evaluate(shell => {
         const rgb = value => value.match(/[\d.]+/g).map(Number)
         const lum = values => values.slice(0, 3).map(v => { v /= 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4 }).reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0)

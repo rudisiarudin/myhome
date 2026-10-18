@@ -54,16 +54,16 @@ colors:
 typography:
   headline:
     fontFamily: '"Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-    fontSize: "36px"
+    fontSize: "24px"
     fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: "-1.1px"
+    lineHeight: 1.3
+    letterSpacing: "-.5px"
   title:
     fontFamily: '"Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-    fontSize: "21px"
-    fontWeight: 700
-    lineHeight: 1.25
-    letterSpacing: "-.55px"
+    fontSize: "16px"
+    fontWeight: 600
+    lineHeight: 1.35
+    letterSpacing: "-.3px"
   body:
     fontFamily: '"Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
     fontSize: "13px"
@@ -75,10 +75,21 @@ typography:
     fontWeight: 600
   amount:
     fontFamily: '"Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
-    fontSize: "44px"
-    fontWeight: 650
+    fontSize: "36px"
+    fontWeight: 600
     lineHeight: 1.3
-    letterSpacing: "-1.5px"
+    letterSpacing: "-1px"
+  amount-mobile:
+    fontSize: "32px"
+  amount-narrow:
+    fontSize: "30px"
+  amount-long:
+    fontSize: "26px"
+  balance-mobile:
+    fontSize: "23px"
+  editor-title:
+    fontSize: "21px"
+    fontWeight: 600
   preview-narrow:
     fontSize: "9px"
   metadata:
@@ -93,34 +104,34 @@ typography:
   field-mobile:
     fontSize: "16px"
   calendar-section-mobile:
-    fontSize: "17px"
+    fontSize: "16px"
   agenda-mobile:
-    fontSize: "18px"
+    fontSize: "16px"
   editor-title-narrow:
-    fontSize: "20px"
-    fontWeight: 700
-  editor-title-mobile:
-    fontSize: "22px"
-    fontWeight: 700
-  wallet-amount:
-    fontSize: "23px"
+    fontSize: "18px"
     fontWeight: 600
-    letterSpacing: "-.7px"
+  editor-title-mobile:
+    fontSize: "20px"
+    fontWeight: 600
+  wallet-amount:
+    fontSize: "22px"
+    fontWeight: 600
+    letterSpacing: "-.6px"
   budget-amount:
+    fontSize: "22px"
+    fontWeight: 600
+    letterSpacing: "-.6px"
+  wallet-amount-mobile:
+    fontSize: "22px"
+    fontWeight: 600
+    letterSpacing: "-.6px"
+  bills-total:
     fontSize: "24px"
     fontWeight: 600
-    letterSpacing: "-.7px"
-  wallet-amount-mobile:
-    fontSize: "25px"
-    fontWeight: 600
-    letterSpacing: "-.7px"
-  bills-total:
-    fontSize: "27px"
-    fontWeight: 600
-    letterSpacing: "-.8px"
+    letterSpacing: "-.6px"
   payment-amount:
-    fontSize: "30px"
-    letterSpacing: "-.8px"
+    fontSize: "26px"
+    letterSpacing: "-.6px"
   pocket-amount:
     fontSize: "clamp(16px, 4.8vw, 22px)"
     fontWeight: 650
@@ -335,14 +346,16 @@ Theme state is applied through `data-theme` on the document root and the native 
 
 ## Typography
 
-One inherited Poppins stack serves headings, labels, fields, and figures, with system sans fallbacks. The user-selected font is self-hosted in `public/fonts/poppins-latin-{400,500,600,700}.woff2`: normal style, Latin coverage, `font-display: swap`, and `font-synthesis: none`. `index.html` preloads weights (400) and (700) with anonymous cross-origin font requests; the files remain same-origin. `public/fonts/OFL.txt` and `public/fonts/README.md` retain the license and provenance. There is no separate display family. The frontmatter's body role describes record titles, not a universal body override: surrounding supporting copy uses regular weight and smaller sizes. Existing CSS requests such as (650) and the wordmark's (750) remain as implemented; the supplied static faces are the four listed weights.
+One inherited Poppins stack serves headings, labels, fields, and figures, with system sans fallbacks. The user-selected font is self-hosted in `public/fonts/poppins-latin-{400,500,600,700}.woff2`: normal style, Latin coverage, `font-display: swap`, and `font-synthesis: none`. `index.html` preloads weights (400) and (700) with anonymous cross-origin font requests; the files remain same-origin. `public/fonts/OFL.txt` and `public/fonts/README.md` retain the license and provenance. There is no separate display family. The frontmatter's body role describes record titles, not a universal body override: surrounding supporting copy uses regular weight and smaller sizes. Some inherited CSS requests (650) remain; the wordmark now uses (700), and compact amount/editor roles use (600). The supplied static faces remain the four listed weights.
 
-- **Headline:** page headings use the headline token; mobile reduces them to (32px), tracking (-.9px).
-- **Login/onboarding heading:** contextual Poppins (32px / 1.25, 700), tracking (-.8px), reducing to (28px) through (359px). This belongs to the compact access shell, not a new global type ramp or a replacement headline token.
-- **Greeting:** (35px / 1.16, 700), reducing to (29px) on mobile and (27px) below the narrow breakpoint.
+- **Headline:** page headings use (24px / 1.3, 700), reducing to (22px) on mobile, tracking (-.5px).
+- **Login/onboarding heading:** compact Poppins (24px / 1.35, 600), tracking (-.5px), reducing to (22px) through (359px).
+- **Greeting:** (24px / 1.25, 700), reducing to (22px) on mobile and (20px) below the narrow breakpoint. Narrow-screen rules no longer enlarge the greeting or daily allowance figure.
 - **Section title:** the title token separates task groups; record titles are deliberately quieter.
 - **Body and metadata:** task copy is generally (12–14px), supporting metadata (10–12px), and dock labels (9px desktop / 8px mobile).
-- **Monetary entry:** the amount token reduces to (42px) on mobile. More than nine raw digits switches to (29px), tracking (-.9px), or (23px) at widths up to (359px). Money and times use tabular numerals.
+- **Monetary entry:** (36px) desktop, (32px) mobile, (30px) through (359px). More than nine raw digits switches to (26px) desktop, (24px) mobile, or (22px) through (359px). Money and times use tabular numerals.
+
+The user requested smaller typography after the connected app shipped. Dominant headings, wallet/bill totals, calendar/composer headings, and editor amounts now use the compact sizes above, while existing body/metadata sizes, control hit areas, and 16px mobile form fields remain unchanged. The mobile decision-card heading stays at (20px), rather than increasing to (27px). This reduces visual bulk without shrinking tap targets or triggering input-focus zoom on mobile Safari.
 
 The workspace roles in frontmatter record actual component density, not a new global type scale. All inherit Poppins; weights and line heights not specified by a role remain contextual. The extension's observed sizes map as follows:
 
@@ -355,17 +368,17 @@ The workspace roles in frontmatter record actual component density, not a new gl
 | 13px | Editor field text and wallet titles; desktop transaction titles/amounts retain existing body sizing. |
 | 14px | History search. |
 | 15px | Compact rupiah digits and empty-state titles. |
-| 16px | Mobile editor text/select/textarea and compact money; payment-summary title; narrow agenda title. |
-| 17px | Mobile calendar section heading. |
-| 18px | Mobile agenda title and narrow budget remainder. |
-| 20px | Narrow editor heading. |
-| 21px | Existing section title and mobile budget remainder. |
-| 22px | Mobile editor heading and desktop calendar agenda title. |
-| 23px | Desktop wallet balance; narrow long amount entry. |
-| 24px | Desktop budget remainder and editor heading. |
-| 25px | Mobile wallet balance. |
-| 27px | Unpaid-bills total. |
-| 30px | Bill-recording payment-summary amount. |
+| 16px | Mobile fields/compact money, section headings, mobile managed agenda, payment-summary title. |
+| 18px | Composer headings, narrow editor heading and budget remainder. |
+| 20px | Mobile editor, desktop managed agenda, decision heading, mobile budget remainder, narrow greeting. |
+| 21px | Desktop editor heading and mobile daily allowance. |
+| 22px | Wallet balance, bill amount, desktop budget remainder, mobile page/greeting and narrow access headings. |
+| 23px | Mobile total wallet balance. |
+| 24px | Desktop page/greeting/access heading, total balance and unpaid-bills summary; long mobile amount. |
+| 26px | Bill-recording payment amount and long desktop amount entry. |
+| 30px | Narrow standard amount entry. |
+| 32px | Mobile standard amount entry. |
+| 36px | Desktop standard amount entry. |
 
 Pocket money uses the exact `pocket-amount` clamp at every viewport inside the budget workspace, overriding older fixed pocket sizes. This keeps final digits together in the two-column cards; `min-width: 0` and overflow wrapping remain defensive. Do not replace it with the superseded (20px/22px) rules.
 
@@ -447,7 +460,7 @@ Mobile feature corners adjust locally: greeting (29px), shortcuts (28px), dock (
 
 ### Account Avatar and Profile Panel
 - AccountProvider supplies current profile and household members. The header no longer presents two role buttons. ProfileAvatar renders a provided avatarUrl inside a circular clipped surface using object-fit cover; missing/failed URLs show up to two initials rather than invented photography. Header avatars are (40px) inside a minimum (44px) trigger; existing member/recorder size classes remain context-specific.
-- The profile panel is nonmodal, with close, outside-click, Escape, Tab, and focus-return behavior. Its (280px) width is capped by the viewport, with (22px) corners, (19px) inset, and an anchored offset aligned to the adjacent theme control. Height is bounded to (100dvh - 115px), with vertical scrolling for profile and invitation controls. Below (360px), width becomes (264px), inset (17px). Light surface is white, dark surface (#25262f); the two shadows in the sidecar mark this temporary elevation.
+- The profile panel is nonmodal, with close, outside-click, Escape, Tab, and focus-return behavior. Its (280px) width is capped by the viewport, with (22px) corners, (19px) inset, and right edge aligned to the rightmost account control (`right: 0`). The existing theme-before-avatar header order is preserved. Height is bounded to (100dvh - 115px), with vertical scrolling for profile and invitation controls. Below (360px), width becomes (264px), inset (17px). Light surface is white, dark surface (#25262f); the two shadows in the sidecar mark this temporary elevation.
 - The connected panel edits the profile name and optional HTTPS avatar URL through `initialize_profile`, with pending, error, and saved feedback. No photo upload or storage integration is supplied; missing/failed images retain initials. An owner with fewer than two household members can issue a (32-character) invitation, valid for (48 hours) and single use; generating another invalidates the previous code. Copy supports manual selection if clipboard access fails. Signout removes household access without removing membership.
 - Preview-only account choices remain explicitly labeled simulation in test/development fixtures, not production login. Connected accounts hide and disable preview switching. Greeting, member avatars, and recorder identity use persisted profile data; editing an existing transaction keeps its original recorder.
 

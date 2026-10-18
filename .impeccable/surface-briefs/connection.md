@@ -4,6 +4,8 @@ Targets: src/features/connection/ConnectionRoot.tsx, src/features/connection/con
 
 Mode: Operate. The user approved connecting the existing app to their Supabase schema, including email login, account profile/avatar, a two-person household invitation and persistent household records. Existing five-tab UI and forms remain intact. No fictitious data is seeded into live households. The user selected antislop during implementation.
 
+Typography follow-up: the user requested smaller fonts and a push. Access headings are now 24px semibold (22px narrow); dominant page/greeting, wallet/bill, decision, calendar and editor roles were reduced in their existing CSS. Already-small metadata, Poppins, layout, colors, tap targets and 16px mobile input sizes are preserved. No new assets or behavior changes.
+
 ## Direction contract
 
 THESIS: extend MyHome with a short email-account and household setup flow, not a separate marketing landing page. Returning users go straight to their own household after session restoration.

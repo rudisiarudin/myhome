@@ -4,7 +4,7 @@
 .header-actions { display: flex; align-items: center; gap: 10px; }
 .theme-toggle { background: #f3f3f5; }
 .theme-toggle:hover { background: #e9e9ee; }
-.wordmark { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; font-size: 22px; font-weight: 750; letter-spacing: -.8px; }
+.wordmark { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; font-size: 20px; font-weight: 700; letter-spacing: -.6px; }
 .wordmark > span { color: #80919b; margin-left: -5px; }
 .role-switch { display: flex; padding: 4px; border-radius: 16px; background: #f3f3f3; }
 .role-switch button { min-width: 64px; min-height: 44px; border-radius: 12px; background: transparent; color: #686866; font-size: 12px; font-weight: 600; transition: background .18s ease, color .18s ease; }
@@ -15,7 +15,7 @@
 .waves { position: absolute; inset: 0; width: 100%; height: 100%; color: #fff; opacity: .11; pointer-events: none; z-index: -1; }
 .greeting-card > .waves { width: 80%; left: auto; }
 .greeting-copy > p:first-child { color: #e0e0de; font-size: 13px; font-weight: 500; }
-.greeting-copy h1 { font-size: 26px; line-height: 1.2; letter-spacing: -.6px; font-weight: 700; margin-top: 6px; }
+.greeting-copy h1 { font-size: 24px; line-height: 1.25; letter-spacing: -.5px; font-weight: 700; margin-top: 6px; }
 .greeting-date { margin-top: 12px; color: #d0d0ce; font-size: 11px; }
 .avatars { display: flex; align-items: center; flex-shrink: 0; padding-right: 3px; }
 .avatar { height: 38px; width: 38px; background: #e5e5e9; color: #37373c; border: 2.5px solid #fff; border-radius: 50%; font-size: 13px; font-weight: 700; display: grid; place-items: center; }
@@ -36,7 +36,7 @@
 .spend-status > span { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2); }
 .spend-status.over-budget { color: #dc2626; }
 .spend-status.over-budget > span { background: #dc2626; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2); }
-.allowance-number { font-size: 24px; font-weight: 700; letter-spacing: -.6px; margin: 4px 0 8px; font-variant-numeric: tabular-nums; }
+.allowance-number { font-size: 22px; font-weight: 700; letter-spacing: -.5px; margin: 4px 0 8px; font-variant-numeric: tabular-nums; }
 .allowance-number > span { font-size: 12px; font-weight: 400; letter-spacing: 0; color: var(--muted); }
 .progress { height: 6px; background: #ececf0; border-radius: 6px; overflow: hidden; }
 .progress > span { display: block; width: 100%; height: 100%; background: #16a34a; border-radius: inherit; transform-origin: left; transition: transform .25s ease-out; }
@@ -47,7 +47,7 @@
 .record-expense { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 40px; min-width: 80px; border-radius: 12px; padding: 7px 12px; background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 600; }
 .record-expense:hover { background: #474745; }
 .section-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin: 24px 0 14px; }
-.section-heading h2 { font-size: 17px; line-height: 1.3; letter-spacing: -.4px; font-weight: 700; }
+.section-heading h2 { font-size: 16px; line-height: 1.35; letter-spacing: -.3px; font-weight: 600; }
 .text-button { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; background: transparent; font-size: 11px; min-height: 40px; padding: 0; color: #666664; }
 .text-button:hover { color: #171716; }
 .home-secondary > section:first-child > .section-heading { margin-top: 0; }
@@ -112,12 +112,12 @@
 .page-content { padding-top: 13px; }
 .page-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 0 22px; }
 .page-date { font-size: 11.5px; color: var(--muted); margin-bottom: 5px; }
-.page-heading h1 { font-size: 26px; font-weight: 700; letter-spacing: -.6px; line-height: 1.25; }
+.page-heading h1 { font-size: 24px; font-weight: 700; letter-spacing: -.5px; line-height: 1.3; }
 .page-description { font-size: 12px; margin-top: 6px; line-height: 1.6; }
 .page-heading .avatar { height: 36px; width: 36px; }
 .balance-card { background: var(--ink); color: #fff; border-radius: 26px; padding: 22px 24px; position: relative; isolation: isolate; overflow: hidden; }
 .balance-card > .row-between { font-size: 12px; color: #dededc; }
-.balance-card h2 { font-size: 26px; font-weight: 650; letter-spacing: -.7px; margin: 12px 0 18px; font-variant-numeric: tabular-nums; }
+.balance-card h2 { font-size: 24px; font-weight: 600; letter-spacing: -.6px; margin: 12px 0 18px; font-variant-numeric: tabular-nums; }
 .balance-footer { display: flex; gap: 12px; justify-content: space-between; font-size: 11px; color: #d3d3d0; padding-top: 15px; border-top: 1px solid #ffffff26; }
 .balance-footer > span:first-child { display: flex; align-items: center; gap: 5px; }
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
@@ -147,7 +147,7 @@
 .calendar-content .section-heading { margin-bottom: 24px; }
 .calendar-content .agenda { padding-left: 34px; }
 .calendar-content .agenda-featured > .agenda-card { min-height: 210px; padding: 27px; }
-.calendar-content .agenda-card h3 { font-size: 22px; }
+.calendar-content .agenda-card h3 { font-size: 20px; }
 .calendar-content .agenda-card { padding: 13px 22px 23px; }
 .calendar-content .agenda-card > p { font-size: 14px; }
 .calendar-content .agenda-footer { margin-top: 32px; }
@@ -162,7 +162,7 @@
 .bill-status { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #726349; }
 .bill-status.paid { color: #526a58; }
 .bill-card h3 { font-size: 15px; font-weight: 600; margin: 20px 0 5px; }
-.bill-amount { font-size: 25px; font-weight: 650; letter-spacing: -.6px; }
+.bill-amount { font-size: 22px; font-weight: 600; letter-spacing: -.5px; }
 .bill-card > p { margin-top: 9px; font-size: 11px; }
 .bill-number { margin-top: 20px; border-top: 1px solid #e5e5e8; padding-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 5px; }
 .bill-number small { display: block; font-size: 10px; color: var(--muted); margin-bottom: 4px; }
@@ -218,7 +218,7 @@
 .dialog-content { padding: 28px; }
 .sheet-handle { display: none; }
 .dialog-heading { margin-bottom: 26px; gap: 8px; }
-.dialog-heading h2 { font-size: 24px; letter-spacing: -.7px; font-weight: 700; }
+.dialog-heading h2 { font-size: 21px; letter-spacing: -.5px; font-weight: 600; }
 .dialog-heading p { margin-top: 5px; }
 .dialog-content form { display: flex; flex-direction: column; }
 .dialog-close { background: #f4f4f5; border-radius: 50%; }
@@ -227,10 +227,10 @@
 .amount-entry > label { font-size: 12px; color: #64646e; }
 .amount-input-wrap { display: flex; align-items: baseline; gap: 10px; margin-top: 9px; }
 .amount-input-wrap > span { font-size: 22px; font-weight: 500; color: #676771; }
-.amount-input-wrap input { background: transparent; color: var(--ink); border: 0; width: 100%; min-width: 0; padding: 0 0 3px; font-size: 44px; line-height: 1.3; font-weight: 650; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; border-radius: 4px; }
+.amount-input-wrap input { background: transparent; color: var(--ink); border: 0; width: 100%; min-width: 0; padding: 0 0 3px; font-size: 36px; line-height: 1.3; font-weight: 600; letter-spacing: -1px; font-variant-numeric: tabular-nums; border-radius: 4px; }
 .amount-input-wrap input:focus-visible { outline: none; }
 .amount-entry:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 3px; }
-.amount-input-wrap input.amount-long { font-size: 29px; letter-spacing: -.9px; }
+.amount-input-wrap input.amount-long { font-size: 26px; letter-spacing: -.7px; }
 .amount-input-wrap input::placeholder { color: #797986; }
 .amount-entry > p { font-size: 10px; color: #6d6d78; margin-top: 10px; }
 .description-input { display: flex; align-items: center; gap: 10px; border: 1px solid #e9e9ed; border-radius: 14px; padding-left: 15px; margin-bottom: 25px; }
@@ -277,7 +277,7 @@
   .role-switch button { min-width: 50px; min-height: 38px; font-size: 10.5px; border-radius: 9px; }
   .greeting-card { min-height: 180px; padding: 20px 20px; border-radius: 24px; }
   .greeting-copy > p:first-child { font-size: 12px; }
-  .greeting-copy h1 { font-size: 23px; letter-spacing: -.6px; margin-top: 8px; }
+  .greeting-copy h1 { font-size: 22px; letter-spacing: -.5px; margin-top: 8px; }
   .greeting-date { font-size: 10px; margin-top: 14px; }
   .greeting-card > .avatars { right: 18px; top: 26px; }
   .greeting-card .avatar { width: 36px; height: 36px; font-size: 13px; }
@@ -287,7 +287,7 @@
   .home-secondary { padding-top: 0; }
   .home-secondary > section:first-child > .section-heading { margin-top: 24px; }
   .allowance-summary { padding: 18px 2px 0; }
-  .allowance-number { font-size: 23px; margin-top: 4px; }
+  .allowance-number { font-size: 21px; margin-top: 4px; }
   .section-heading { margin-top: 20px; margin-bottom: 12px; }
   .section-heading h2 { font-size: 16px; }
   .shortcut-grid { gap: 10px; }
@@ -311,12 +311,12 @@
   .page-content { padding-top: 10px; }
   .page-heading { padding-bottom: 20px; gap: 10px; }
   .page-date { font-size: 11px; }
-  .page-heading h1 { font-size: 24px; letter-spacing: -.6px; }
+  .page-heading h1 { font-size: 22px; letter-spacing: -.5px; }
   .page-description { font-size: 11.5px; max-width: 250px; }
   .page-heading > .avatars { align-self: flex-start; margin-top: 14px; }
   .page-heading .avatar { width: 30px; height: 30px; font-size: 10px; border-width: 2px; }
   .balance-card { padding: 20px; }
-  .balance-card h2 { font-size: 25px; }
+  .balance-card h2 { font-size: 23px; }
   .balance-footer { font-size: 10px; gap: 5px; }
   .detail-grid { display: block; }
   .pocket-card { padding: 17px; }
@@ -327,7 +327,7 @@
   .calendar-content .section-heading { margin-bottom: 23px; }
   .calendar-content .section-heading h2 { font-size: 18px; }
   .calendar-content .agenda { padding-left: 29px; }
-  .calendar-content .agenda-card h3 { font-size: 20px; }
+  .calendar-content .agenda-card h3 { font-size: 18px; }
   .calendar-content .agenda-featured > .agenda-card { min-height: 202px; padding: 22px 19px; }
   .calendar-content .agenda-card { padding: 10px 15px 20px; }
   .calendar-content .agenda-card > p { font-size: 12px; }
@@ -343,7 +343,7 @@
   .contact-row { gap: 10px; }
   .decision-grid { grid-template-columns: 1fr; gap: 19px; }
   .decision-card { padding: 25px; }
-  .decision-card h2 { font-size: 27px; }
+  .decision-card h2 { font-size: 20px; }
   .decision-result { min-height: 119px; padding: 24px 0; }
   .shopping-form input { font-size: 16px; padding: 13px; }
   .shopping-form .primary-button { padding: 12px 14px; }
@@ -354,9 +354,10 @@
   .expense-dialog { width: 100%; max-width: 500px; margin: auto auto 0; border-radius: 28px 28px 0 0; max-height: calc(100dvh - 20px); }
   .dialog-content { padding: 14px 24px calc(26px + env(safe-area-inset-bottom, 0px)); }
   .sheet-handle { display: block; margin: 0 auto 23px; height: 4px; width: 35px; border-radius: 4px; background: #d7d7da; }
-  .dialog-heading h2 { font-size: 23px; }
+  .dialog-heading h2 { font-size: 20px; }
   .dialog-heading p { font-size: 11px; }
-  .amount-input-wrap input { font-size: 42px; }
+  .amount-input-wrap input { font-size: 32px; }
+  .amount-input-wrap input.amount-long { font-size: 24px; }
   .description-input input { font-size: 16px; }
   .description-input input::placeholder { font-size: 12px; }
   .category-option > span { padding-left: 11px; padding-right: 10px; gap: 8px; }
@@ -369,13 +370,13 @@
   .wordmark { font-size: 19px; gap: 5px; }
   .app-shell { padding-left: 18px; padding-right: 18px; }
   .greeting-card { padding-left: 20px; }
-  .greeting-copy h1 { font-size: 27px; }
+  .greeting-copy h1 { font-size: 20px; }
   .greeting-signature { display: none; }
   .greeting-card > .avatars { right: 15px; }
   .greeting-card .avatar { width: 36px; height: 36px; }
   .shortcut-card { padding-left: 14px; padding-right: 12px; }
-  .shortcut-card h3 { font-size: 15px; }
-  .allowance-number { font-size: 25px; }
+  .shortcut-card h3 { font-size: 14px; }
+  .allowance-number { font-size: 20px; }
   .allowance-number > span { font-size: 10px; }
   .pocket-card { padding: 13px; }
   .pocket-card > strong { font-size: 20px; }
@@ -387,11 +388,12 @@
   .calendar-content .agenda-card h3 { font-size: 17px; }
   .bottom-nav { padding-left: 7px; padding-right: 7px; }
   .dialog-content { padding-left: 19px; padding-right: 19px; }
-  .dialog-heading h2 { font-size: 21px; }
+  .dialog-heading h2 { font-size: 18px; }
   .category-option > span { gap: 6px; padding-left: 9px; }
   .category-option > span > span { font-size: 9px; }
   .category-option > span > svg { width: 16px; }
-  .amount-input-wrap input.amount-long { font-size: 23px; }
+  .amount-input-wrap input { font-size: 30px; }
+  .amount-input-wrap input.amount-long { font-size: 22px; }
 }
 
 /* Dark surfaces keep the reference's charcoal emphasis without reversing text-only ink tokens. */

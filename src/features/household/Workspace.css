@@ -54,7 +54,7 @@
 .payment-summary { text-align: center; padding: 25px 15px; background: var(--lavender); border-radius: 22px; margin-bottom: 24px; }
 .payment-summary > svg { margin: 0 auto 15px; }
 .payment-summary h3 { font-size: 16px; font-weight: 600; }
-.payment-summary strong { display: block; font-size: 30px; margin: 10px 0; letter-spacing: -.8px; }
+.payment-summary strong { display: block; font-size: 26px; margin: 10px 0; letter-spacing: -.6px; }
 .payment-summary p { font-size: 11px; color: var(--muted); }
 .balance-caption { font-size: 11px; color: #d3d3d0; margin: -12px 0 25px; }
 .finance-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0 25px; }
@@ -67,7 +67,7 @@
 .wallet-card { min-width: 0; padding: 19px 21px 12px; border-radius: 24px; background: var(--lavender); }
 .wallet-symbol { width: 39px; height: 39px; display: grid; place-items: center; color: var(--workspace-text); }
 .wallet-card h3 { font-size: 13px; font-weight: 500; margin-top: 10px; }
-.wallet-balance { display: block; font-size: 23px; letter-spacing: -.7px; margin-top: 4px; font-weight: 600; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.wallet-balance { display: block; font-size: 22px; letter-spacing: -.6px; margin-top: 4px; font-weight: 600; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .wallet-footer { display: flex; justify-content: space-between; align-items: center; gap: 5px; margin-top: 13px; }
 .wallet-footer > span { color: var(--muted); font-size: 10px; }
 .wallet-footer .icon-button { width: 44px; height: 44px; margin-right: -8px; }
@@ -80,7 +80,7 @@
 .budget-limit { border: 1px solid var(--workspace-border); border-radius: 22px; padding: 20px; min-width: 0; }
 .budget-limit > .row-between { font-size: 12px; }
 .budget-limit > .row-between svg { color: var(--muted); }
-.budget-limit > strong { font-size: 24px; display: block; letter-spacing: -.7px; margin-top: 18px; font-weight: 600; overflow-wrap: anywhere; }
+.budget-limit > strong { font-size: 22px; display: block; letter-spacing: -.6px; margin-top: 18px; font-weight: 600; overflow-wrap: anywhere; }
 .budget-limit .progress { margin: 18px 0 10px; }
 .budget-limit > p { font-size: 10px; }
 .over-limit { color: #973e3e; }
@@ -115,7 +115,7 @@
 .calendar-work-area > .calendar-content > .section-heading { margin-top: 0; }
 .agenda-composer { min-width: 0; border: 1px solid var(--workspace-border); border-radius: 24px; padding: 23px; }
 .agenda-form-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 5px; }
-.agenda-form-heading h2 { font-size: 20px; font-weight: 600; letter-spacing: -.5px; }
+.agenda-form-heading h2 { font-size: 18px; font-weight: 600; letter-spacing: -.4px; }
 .agenda-form-description { color: var(--muted); font-size: 12px; line-height: 1.7; margin-bottom: 24px; }
 .agenda-composer .form-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .agenda-entry-form textarea::placeholder, .house-entry-form textarea::placeholder { color: var(--muted); opacity: 1; }
@@ -144,7 +144,7 @@
 .calendar-workspace .agenda-card p { overflow-wrap: anywhere; }
 .bills-summary { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 6px 0 24px; }
 .bills-summary > div { display: flex; flex-direction: column; gap: 4px; }
-.bills-summary strong { font-size: 27px; font-weight: 600; letter-spacing: -.8px; }
+.bills-summary strong { font-size: 24px; font-weight: 600; letter-spacing: -.6px; }
 .bills-summary > label { max-width: 160px; }
 .bill-actions { display: flex; align-items: center; justify-content: space-between; gap: 5px; margin-top: 18px; border-top: 1px solid var(--workspace-border); padding-top: 15px; }
 .bill-actions .primary-button { min-height: 44px; padding: 10px 13px; font-size: 11px; border-radius: 12px; }
@@ -168,7 +168,7 @@
   .house-composer { padding: 20px 18px; border-radius: 22px; }
   .house-composer .save-expense { font-size: 12px; }
   .house-record-note { margin-left: 0; font-size: 11px; }
-  .house-list-area .section-heading h2 { font-size: 18px; }
+  .house-list-area .section-heading h2 { font-size: 16px; }
   .house-list-area .document-days { font-size: 18px; }
   .agenda-composer { padding: 20px 18px; border-radius: 22px; }
   .agenda-composer .save-expense { font-size: 12px; }
@@ -177,12 +177,12 @@
   .wallet-card > .row-between { float: right; flex-direction: row-reverse; gap: 4px; margin: -5px -6px 0 10px; }
   .wallet-symbol { width: 35px; height: 35px; }
   .wallet-card h3 { margin-top: 8px; }
-  .wallet-balance { font-size: 25px; margin-top: 5px; }
+  .wallet-balance { font-size: 22px; margin-top: 5px; }
   .wallet-footer { clear: both; margin-top: 7px; }
   .wallet-grid .empty-state { width: 100%; }
   .budget-settings-grid { gap: 10px; }
   .budget-limit { padding: 17px 14px; }
-  .budget-limit > strong { font-size: 21px; }
+  .budget-limit > strong { font-size: 20px; }
   .finance-actions { gap: 6px; margin-top: 16px; }
   .finance-actions > button { font-size: 11px; }
   .filter-grid { grid-template-columns: 1fr 1fr; gap: 12px 10px; }
@@ -195,16 +195,16 @@
   .workspace-form .form-field > select,
   .workspace-form .form-field > textarea,
   .compact-money > input { font-size: 16px; }
-  .workspace-dialog .dialog-heading h2 { font-size: 22px; }
+  .workspace-dialog .dialog-heading h2 { font-size: 20px; }
   .workspace-dialog .form-columns { gap: 10px; }
   .workspace-dialog .dialog-content { padding-left: 22px; padding-right: 22px; }
   .workspace-form .form-field > select { padding-left: 10px; padding-right: 6px; }
   .workspace-form .form-field > input { padding-left: 11px; padding-right: 8px; }
   .compact-money { gap: 6px; padding-left: 11px; padding-right: 7px; }
   .workspace-form .amount-entry > p { margin-bottom: 0; }
-  .calendar-workspace .calendar-content .section-heading h2 { font-size: 17px; }
+  .calendar-workspace .calendar-content .section-heading h2 { font-size: 16px; }
   .calendar-workspace .agenda-card .row-between { align-items: flex-start; }
-  .calendar-workspace .calendar-content .agenda-card h3 { font-size: 18px; }
+  .calendar-workspace .calendar-content .agenda-card h3 { font-size: 16px; }
   .calendar-workspace .agenda-card .row-actions .icon-button { width: 40px; }
   .bill-actions .secondary-button { font-size: 10px; }
   .preview-banner { font-size: 10px; }
@@ -217,7 +217,7 @@
   .agenda-composer .form-columns { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .workspace-preview { font-size: 9px; }
   .workspace-dialog .dialog-content { padding-left: 18px; padding-right: 18px; }
-  .workspace-dialog .dialog-heading h2 { font-size: 20px; }
+  .workspace-dialog .dialog-heading h2 { font-size: 18px; }
   .form-columns { gap: 9px; }
   .budget-limit > strong { font-size: 18px; }
   .transaction-main { gap: 8px; }

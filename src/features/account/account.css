@@ -4,7 +4,7 @@
 .account-trigger { display: flex; align-items: center; gap: 5px; padding: 2px 5px 2px 2px; min-height: 44px; border-radius: 16px; background: transparent; color: var(--workspace-text); }
 .account-trigger:hover { background: var(--workspace-fill); }
 .account-avatar { width: 40px; height: 40px; border: 2px solid var(--workspace-border); }
-.account-panel { position: absolute; top: calc(100% + 12px); right: -54px; width: 280px; max-width: calc(100vw - 40px); max-height: calc(100dvh - 115px); overflow-y: auto; padding: 19px; border-radius: 22px; background: #fff; border: 1px solid var(--workspace-border); color: var(--workspace-text); box-shadow: 0 12px 35px #2028341a; }
+.account-panel { position: absolute; top: calc(100% + 12px); right: 0; width: 280px; max-width: calc(100vw - 40px); max-height: calc(100dvh - 115px); overflow-y: auto; padding: 19px; border-radius: 22px; background: #fff; border: 1px solid var(--workspace-border); color: var(--workspace-text); box-shadow: 0 12px 35px #2028341a; }
 .account-close { position: absolute; top: 6px; right: 5px; }
 .account-summary { display: flex; align-items: center; gap: 11px; padding-right: 30px; }
 .account-summary > div { min-width: 0; }
@@ -20,6 +20,6 @@
 .greeting-signature { max-width: 50%; line-height: 1.6; }
 [data-theme="dark"] .account-panel { background: #25262f; box-shadow: 0 12px 35px #0004; }
 @media (max-width: 359px) {
-  .account-panel { padding: 17px; width: 264px; right: -51px; }
+  .account-panel { padding: 17px; width: 264px; }
   .account-summary { padding-right: 26px; }
 }
