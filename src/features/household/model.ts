@@ -147,7 +147,10 @@ export interface HouseholdState {
   memories: JournalMemory[]
 }
 
-export const money = (value: number) => `Rp${value.toLocaleString('id-ID')}`
+export const money = (value: number) => {
+  if (value < 0) return `-Rp${Math.abs(value).toLocaleString('id-ID')}`
+  return `Rp${value.toLocaleString('id-ID')}`
+}
 export const personName = (value: string) => value === 'suami' ? 'Rudi' : value === 'istri' ? 'Istri' : 'Berdua'
 export const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 export const dateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`

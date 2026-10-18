@@ -78,7 +78,7 @@ export function DebtReportsWorkspace() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ paddingBottom: '30px' }}>
       {/* ─── 1. NERACA KEKAYAAN BERSIH (NET WORTH) ─── */}
       <section className="balance-card" style={{ padding: '24px 28px', borderRadius: '26px' }}>
         <div className="row-between">
