@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import type { Dispatch, ReactNode, SetStateAction } from 'react'
+import type { ReactNode } from 'react'
 import { bills as sampleBills, contacts as sampleContacts, documents as sampleDocuments, goals as sampleGoals, initialExpenses, schedule } from '../../data/demo'
 import { dateKey, TODAY, isDateKey, isMoney, isPhoneNumber, makeId, normalizePhone, validateTransaction, validateTransactionDeletion, walletBalance } from './model'
-import type { BudgetSettings, HouseholdBill, HouseholdContact, HouseholdDocument, HouseholdEvent, HouseholdState, HouseholdWallet, Person, SavingGoal, Transaction, TransactionKind } from './model'
+import type { BudgetSettings, DebtLoan, HouseholdBill, HouseholdContact, HouseholdDocument, HouseholdEvent, HouseholdState, HouseholdWallet, JournalMemory, Person, SavingGoal, Transaction, TransactionKind } from './model'
 import { HouseholdContext } from './context'
 import { dateIdeas, foodIdeas, initialShopping } from '../../data/demo'
 import type { ShoppingItem } from '../../types'
@@ -49,6 +49,14 @@ function initialState(): HouseholdState {
       { id: 'p1', title: 'Kopi Tuku / Artisan Coffee', location: 'Blok M / Cipete', category: 'kopi', estBudget: 75000, notes: 'Tempat ngopi santai weekend pagi' },
       { id: 'p2', title: 'Osteria Gia Pasta', location: 'Plaza Indonesia', category: 'makan', estBudget: 350000, notes: 'Target dinner kencan perayaan' },
       { id: 'p3', title: 'Taman Literasi & Jalan Sore', location: 'Blok M', category: 'jalan', estBudget: 50000, notes: 'Jalan santai murah meriah' },
+    ],
+    debts: [
+      { id: 'db1', title: 'Cicilan KPR Rumah', type: 'kpr', lenderOrBorrower: 'Bank Mandiri', totalAmount: 380000000, remainingAmount: 315000000, monthlyPayment: 3850000, dueDay: 10, tenorMonths: 180, remainingMonths: 142, notes: 'Bunga fixed 3 tahun pertama' },
+      { id: 'db2', title: 'Cicilan Motor Beat', type: 'kendaraan', lenderOrBorrower: 'FIF Finance', totalAmount: 18500000, remainingAmount: 5200000, monthlyPayment: 780000, dueDay: 25, tenorMonths: 24, remainingMonths: 7, notes: 'Selesai Mei 2027' },
+    ],
+    memories: [
+      { id: 'm1', title: 'Anniversary Pernikahan', date: '2026-09-12', note: 'Dinner romantis berdua & evaluasi perjalanan rumah tangga.', category: 'milestone', recordedBy: 'suami' },
+      { id: 'm2', title: 'Weekend Getaway Puncak', date: '2026-10-04', note: 'Staycation dingin, masak mie instan bareng & ngopi santai.', category: 'liburan', recordedBy: 'istri' },
     ],
   }
 }
@@ -230,6 +238,39 @@ function useStore() {
     return null
   }
 
+  const saveDebt = async (debt: DebtLoan) => {
+    if (!debt.title.trim()) return 'Tulis nama pinjaman/utang.'
+    if (debt.totalAmount <= 0) return 'Nominal harus lebih dari 0.'
+    setState(current => ({
+      ...current,
+      debts: [...current.debts.filter(d => d.id !== debt.id), debt]
+    }))
+    finish('Data utang/KPR berhasil disimpan.')
+    return null
+  }
+
+  const deleteDebt = async (id: string) => {
+    setState(current => ({ ...current, debts: current.debts.filter(d => d.id !== id) }))
+    finish('Data utang/KPR dihapus.')
+    return null
+  }
+
+  const saveMemory = async (memory: JournalMemory) => {
+    if (!memory.title.trim()) return 'Tulis judul momen berdua.'
+    setState(current => ({
+      ...current,
+      memories: [memory, ...current.memories.filter(m => m.id !== memory.id)]
+    }))
+    finish('Momen berdua berhasil dicatat.')
+    return null
+  }
+
+  const deleteMemory = async (id: string) => {
+    setState(current => ({ ...current, memories: current.memories.filter(m => m.id !== id) }))
+    finish('Momen dihapus.')
+    return null
+  }
+
   const saveShopping = async (item: ShoppingItem) => { setState(current => ({ ...current, shopping: [item, ...current.shopping.filter(row => row.id !== item.id)] })); return null }
   const deleteShopping = async (id: string) => { setState(current => ({ ...current, shopping: current.shopping.filter(row => row.id !== id) })); return null }
   const saveIdea = async (kind: 'food' | 'date', title: string) => {
@@ -238,16 +279,16 @@ function useStore() {
     return null
   }
   const deleteIdea = async (kind: 'food' | 'date', id: string) => { setState(current => kind === 'food' ? { ...current, foodIdeas: current.foodIdeas.filter(row => row.id !== id) } : { ...current, dateIdeas: current.dateIdeas.filter(row => row.id !== id) }); return null }
-  return { state, editor, setEditor, notice, setNotice, pending: false, isPreview: true, refreshError: '', refreshing: false, refresh: async () => {}, saveTransaction, deleteTransaction, saveWallet, deleteWallet, saveBudget, saveEvent, deleteEvent, toggleEvent, saveBill, deleteBill, payBill, unpayBill, saveGoal, deleteGoal, saveDocument, deleteDocument, saveContact, deleteContact, toggleChore, saveChore, deleteChore, savePlace, deletePlace, saveShopping, deleteShopping, saveIdea, deleteIdea }
+  return { state, editor, setEditor, notice, setNotice, pending: false, isPreview: true, refreshError: '', refreshing: false, refresh: async () => {}, saveTransaction, deleteTransaction, saveWallet, deleteWallet, saveBudget, saveEvent, deleteEvent, toggleEvent, saveBill, deleteBill, payBill, unpayBill, saveGoal, deleteGoal, saveDocument, deleteDocument, saveContact, deleteContact, toggleChore, saveChore, deleteChore, savePlace, deletePlace, saveShopping, deleteShopping, saveIdea, deleteIdea, saveDebt, deleteDebt, saveMemory, deleteMemory }
 }
 
 type MutationResult = Promise<string | null>
 export interface HouseholdStore {
   state: HouseholdState
   editor: Editor | null
-  setEditor: Dispatch<SetStateAction<Editor | null>>
+  setEditor: (editor: Editor | null) => void
   notice: string
-  setNotice: Dispatch<SetStateAction<string>>
+  setNotice: (notice: string) => void
   pending: boolean
   isPreview: boolean
   refreshError: string
@@ -280,6 +321,10 @@ export interface HouseholdStore {
   deleteShopping: (id: string) => MutationResult
   saveIdea: (kind: 'food' | 'date', title: string) => MutationResult
   deleteIdea: (kind: 'food' | 'date', id: string) => MutationResult
+  saveDebt: (debt: DebtLoan) => MutationResult
+  deleteDebt: (id: string) => MutationResult
+  saveMemory: (memory: JournalMemory) => MutationResult
+  deleteMemory: (id: string) => MutationResult
 }
 
 export function HouseholdProvider({ children }: { children: ReactNode }) {

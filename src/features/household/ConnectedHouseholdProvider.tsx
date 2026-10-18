@@ -132,6 +132,10 @@ export function ConnectedHouseholdProvider({ client, householdId, children }: {
     deleteShopping: id => remove('shopping_items', id),
     saveIdea: (kind, title) => run(() => repository.save(kind === 'food' ? 'food_ideas' : 'date_ideas', { title, ...(kind === 'food' ? { type: 'masak', tag: '' } : {}) })),
     deleteIdea: (kind, id) => remove(kind === 'food' ? 'food_ideas' : 'date_ideas', id),
+    saveDebt: debt => run(() => repository.save('debts', { title: debt.title, type: debt.type, lender_or_borrower: debt.lenderOrBorrower, total_amount: debt.totalAmount, remaining_amount: debt.remainingAmount, monthly_payment: debt.monthlyPayment ?? null, due_day: debt.dueDay ?? null, tenor_months: debt.tenorMonths ?? null, remaining_months: debt.remainingMonths ?? null, notes: debt.notes ?? '' }, existing(state.debts, debt.id))),
+    deleteDebt: id => remove('debts', id),
+    saveMemory: memory => run(() => repository.save('memories', { title: memory.title, date: memory.date, note: memory.note, category: memory.category, recorded_by: memory.recordedBy }, existing(state.memories, memory.id))),
+    deleteMemory: id => remove('memories', id),
   }
   return <HouseholdContext.Provider value={value}>{children}</HouseholdContext.Provider>
 }

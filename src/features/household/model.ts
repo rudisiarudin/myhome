@@ -106,6 +106,29 @@ export const contactCategories = [
   ['servis', 'Servis & perawatan'], ['keamanan', 'Keamanan'], ['medis', 'Kesehatan'], ['rt', 'Lingkungan / RT'], ['lainnya', 'Lainnya'],
 ] as const
 
+export interface DebtLoan {
+  id: string
+  title: string
+  type: 'kpr' | 'kendaraan' | 'personal' | 'piutang'
+  lenderOrBorrower: string
+  totalAmount: number
+  remainingAmount: number
+  monthlyPayment?: number
+  dueDay?: number
+  tenorMonths?: number
+  remainingMonths?: number
+  notes?: string
+}
+
+export interface JournalMemory {
+  id: string
+  title: string
+  date: string
+  note: string
+  category: 'kencan' | 'milestone' | 'liburan' | 'rumah'
+  recordedBy: Person
+}
+
 export interface HouseholdState {
   wallets: HouseholdWallet[]
   transactions: Transaction[]
@@ -120,6 +143,8 @@ export interface HouseholdState {
   shopping: ShoppingItem[]
   foodIdeas: FoodIdea[]
   dateIdeas: { id: string; title: string }[]
+  debts: DebtLoan[]
+  memories: JournalMemory[]
 }
 
 export const money = (value: number) => `Rp${value.toLocaleString('id-ID')}`

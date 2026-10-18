@@ -9,6 +9,7 @@ import { useAccount } from './features/account/context'
 import { AccountMenu, MemberAvatars as Avatars } from './features/account/ProfileAvatar'
 import { BudgetWorkspace, CalendarWorkspace, GoalsWorkspace, TransactionList } from './features/household/Workspace'
 import { HouseWorkspace } from './features/household/HouseWorkspace'
+import { DebtReportsWorkspace } from './features/household/DebtReportsWorkspace'
 import { HouseholdDialogs } from './features/household/Dialogs'
 import './App.css'
 import './features/household/Workspace.css'
@@ -207,6 +208,7 @@ export default function App() {
   const schedule = state.events
   const [theme, setTheme] = useTheme()
   const [activeTab, setActiveTab] = useState<Tab>('today')
+  const [budgetSubTab, setBudgetSubTab] = useState<'budget' | 'debts'>('budget')
   const [coupleSubTab, setCoupleSubTab] = useState<'decision' | 'shopping' | 'goals' | 'places'>('decision')
   const [houseSubTab, setHouseSubTab] = useState<'bills' | 'vault' | 'contacts' | 'chores'>('bills')
   const shoppingList = state.shopping
@@ -355,7 +357,14 @@ export default function App() {
       </> : <div className="page-content">
         <div className="page-heading"><div><p className="page-date">{formatDate(TODAY, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p><h1>{titles[activeTab]}</h1><p className="muted page-description">{descriptions[activeTab]}</p></div><Avatars /></div>
 
-        {activeTab === 'budget' && <BudgetWorkspace />}
+        {activeTab === 'budget' && <>
+          <div className="segmented-control" role="group" aria-label="Bagian keuangan">
+            {([{ key: 'budget', label: 'Kas & Anggaran' }, { key: 'debts', label: 'KPR & Neraca' }] as const).map(tab => (
+              <button key={tab.key} aria-pressed={budgetSubTab === tab.key} onClick={() => setBudgetSubTab(tab.key)}>{tab.label}</button>
+            ))}
+          </div>
+          {budgetSubTab === 'budget' ? <BudgetWorkspace /> : <DebtReportsWorkspace />}
+        </>}
         {activeTab === 'calendar' && <CalendarWorkspace />}
 
         {activeTab === 'house' && <>

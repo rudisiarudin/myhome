@@ -28,6 +28,27 @@ export function decodeHousehold(rows: Record<string, Row[]>): HouseholdState {
     shopping: rows.shopping_items.map(r => ({ id: text(r, 'id'), title: text(r, 'title'), isBought: r.is_bought === true, addedBy: text(r, 'added_by') as Person })),
     foodIdeas: rows.food_ideas.map(r => ({ id: text(r, 'id'), title: text(r, 'title'), type: text(r, 'type') as 'masak' | 'makan-luar', tag: text(r, 'tag') })),
     dateIdeas: rows.date_ideas.map(r => ({ id: text(r, 'id'), title: text(r, 'title') })),
+    debts: (rows.debts ?? []).map(r => ({
+      id: text(r, 'id'),
+      title: text(r, 'title'),
+      type: text(r, 'type') as any,
+      lenderOrBorrower: text(r, 'lender_or_borrower'),
+      totalAmount: number(r, 'total_amount'),
+      remainingAmount: number(r, 'remaining_amount'),
+      monthlyPayment: r.monthly_payment == null ? undefined : number(r, 'monthly_payment'),
+      dueDay: r.due_day == null ? undefined : Number(r.due_day),
+      tenorMonths: r.tenor_months == null ? undefined : Number(r.tenor_months),
+      remainingMonths: r.remaining_months == null ? undefined : Number(r.remaining_months),
+      notes: optional(r, 'notes')
+    })),
+    memories: (rows.memories ?? []).map(r => ({
+      id: text(r, 'id'),
+      title: text(r, 'title'),
+      date: text(r, 'date'),
+      note: text(r, 'note'),
+      category: text(r, 'category') as any,
+      recordedBy: text(r, 'recorded_by') as Person
+    }))
   }
 }
 
