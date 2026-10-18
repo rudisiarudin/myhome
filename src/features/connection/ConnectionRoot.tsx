@@ -68,7 +68,21 @@ function AuthForm({ client, recovery }: { client: SupabaseClient; recovery: bool
         <button className="primary-button" type="submit">{busy ? 'Memproses…' : recovery ? 'Simpan kata sandi' : mode === 'signup' ? 'Buat akun' : mode === 'reset' ? 'Kirim tautan pemulihan' : 'Masuk ke rumah'}</button>
       </fieldset>
     </form>
-    {!recovery && mode === 'login' && <button className="text-button access-link" onClick={() => { setMode('reset'); setError(''); setMessage('') }}>Lupa kata sandi?</button>}
+    {!recovery && mode === 'login' && (
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+        <button className="text-button access-link" style={{ margin: 0 }} onClick={() => { setMode('reset'); setError(''); setMessage('') }}>Lupa kata sandi?</button>
+        <button
+          type="button"
+          className="text-button access-link"
+          style={{ margin: 0, color: 'var(--muted)', fontSize: '11.5px' }}
+          onClick={() => {
+            window.location.search = '?preview=true'
+          }}
+        >
+          Masuk mode demo →
+        </button>
+      </div>
+    )}
   </>
 }
 
@@ -183,7 +197,17 @@ export function ConnectionRoot() {
     if (error) { setError(errorMessage(error)); return }
     setSession(null); setRecovery(false)
   }
-  if (!client) return <AccessShell><h1>Hubungkan rumahmu.</h1><p className="access-description">Isi VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY atau VITE_SUPABASE_ANON_KEY di .env, lalu mulai ulang server. Gunakan key publik, bukan secret/service-role.</p></AccessShell>
+  const isDemo = new URLSearchParams(window.location.search).get('preview') === 'true'
+  if (isDemo || !client) {
+    return (
+      <AccountProvider>
+        <Suspense fallback={<p className="connection-state" role="status">Membuka rumah…</p>}>
+          <App />
+        </Suspense>
+      </AccountProvider>
+    )
+  }
+
   if (!ready) return <AccessShell><p role="status">Memeriksa sesi akun…</p></AccessShell>
   return <>{error && <div className="connection-warning" role="alert">{error}<button className="text-button" onClick={() => setError('')}>Tutup pesan</button></div>}{!session || recovery ? <AccessShell><AuthForm client={client} recovery={recovery} /></AccessShell> : <SignedIn key={session.user.id} client={client} session={session} onSignOut={signOut} />}</>
 }
