@@ -54,7 +54,7 @@ export function decodeHousehold(rows: Record<string, Row[]>): HouseholdState {
 
 export function createHouseholdRepository(client: SupabaseClient, householdId: string) {
   const db = client.schema('myhome')
-  const tables = ['wallets', 'transactions', 'saving_goals', 'bill_status', 'events', 'documents', 'contacts', 'chores', 'wishlist_places', 'shopping_items', 'food_ideas', 'date_ideas']
+  const tables = ['wallets', 'transactions', 'saving_goals', 'bill_status', 'events', 'documents', 'contacts', 'chores', 'wishlist_places', 'shopping_items', 'food_ideas', 'date_ideas', 'debts', 'memories']
   const readAll = async (table: string): Promise<Row[]> => {
     const rows: Row[] = []
     for (let offset = 0; ; offset += 500) {
