@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Plus, Trash2, Download, Wallet, Check, X } from 'lucide-react'
 import { useHousehold } from './context'
-import { money, makeId, walletBalance } from './model'
-import type { DebtLoan } from './model'
+import { money, makeId, walletBalance, TODAY, formatDate, isDateKey } from './model'
+import type { DebtLoan, DebtPayment } from './model'
 import { Section } from './ui'
 
 function SectionHeading({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
@@ -25,17 +25,23 @@ export function DebtReportsWorkspace() {
   // Form inline pencatatan pembayaran/pengembalian pada kartu utang/piutang
   const [payingId, setPayingId] = useState<string | null>(null)
   const [payAmount, setPayAmount] = useState('')
+  const [payDate, setPayDate] = useState(TODAY)
+  const [payNote, setPayNote] = useState('')
   const [payError, setPayError] = useState('')
 
   const openPayForm = (d: DebtLoan) => {
     setPayingId(d.id)
     setPayAmount(String(d.monthlyPayment ? Math.min(d.monthlyPayment, d.remainingAmount) : d.remainingAmount))
+    setPayDate(TODAY)
+    setPayNote('')
     setPayError('')
   }
 
   const closePayForm = () => {
     setPayingId(null)
     setPayAmount('')
+    setPayDate(TODAY)
+    setPayNote('')
     setPayError('')
   }
 
@@ -50,7 +56,12 @@ export function DebtReportsWorkspace() {
       setPayError(`Nominal tidak boleh melebihi sisa saat ini (${money(d.remainingAmount)}).`)
       return
     }
-    void store.saveDebt({ ...d, remainingAmount: d.remainingAmount - amount })
+    if (!isDateKey(payDate)) {
+      setPayError('Pilih tanggal pembayaran yang valid.')
+      return
+    }
+    const payment: DebtPayment = { id: makeId(), debtId: d.id, amount, paidDate: payDate, note: payNote.trim() }
+    void store.saveDebtPayment(d, payment)
     closePayForm()
   }
 
@@ -257,6 +268,9 @@ export function DebtReportsWorkspace() {
           {state.debts.length ? state.debts.map(d => {
             const isPiutang = d.type === 'piutang'
             const pctPaid = Math.min(Math.round(((d.totalAmount - d.remainingAmount) / d.totalAmount) * 100), 100)
+            const history = state.debtPayments
+              .filter(p => p.debtId === d.id)
+              .sort((a, b) => b.paidDate.localeCompare(a.paidDate))
             return (
               <article className="house-record" key={d.id} style={{ padding: '18px 20px', borderRadius: '22px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -297,17 +311,40 @@ export function DebtReportsWorkspace() {
                 )}
                 {d.remainingAmount > 0 && payingId === d.id && (
                   <form onSubmit={e => handleRecordPayment(e, d)} className="workspace-form" style={{ marginTop: '14px' }}>
+                    <div className="form-columns">
+                      <div className="form-field">
+                        <label htmlFor={`debt-pay-${d.id}`}>{isPiutang ? 'Nominal Pengembalian (Rp)' : 'Nominal Pembayaran (Rp)'}</label>
+                        <input
+                          id={`debt-pay-${d.id}`}
+                          type="number"
+                          min="1"
+                          max={d.remainingAmount}
+                          required
+                          autoFocus
+                          value={payAmount}
+                          onChange={e => setPayAmount(e.target.value)}
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label htmlFor={`debt-pay-date-${d.id}`}>Tanggal</label>
+                        <input
+                          id={`debt-pay-date-${d.id}`}
+                          type="date"
+                          required
+                          max={TODAY}
+                          value={payDate}
+                          onChange={e => setPayDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
                     <div className="form-field">
-                      <label htmlFor={`debt-pay-${d.id}`}>{isPiutang ? 'Nominal Pengembalian (Rp)' : 'Nominal Pembayaran (Rp)'}</label>
+                      <label htmlFor={`debt-pay-note-${d.id}`}>Catatan (opsional)</label>
                       <input
-                        id={`debt-pay-${d.id}`}
-                        type="number"
-                        min="1"
-                        max={d.remainingAmount}
-                        required
-                        autoFocus
-                        value={payAmount}
-                        onChange={e => setPayAmount(e.target.value)}
+                        id={`debt-pay-note-${d.id}`}
+                        type="text"
+                        placeholder="Contoh: transfer BCA / cash"
+                        value={payNote}
+                        onChange={e => setPayNote(e.target.value)}
                       />
                     </div>
                     <p className="small muted" style={{ margin: '0 0 12px' }}>
@@ -323,6 +360,32 @@ export function DebtReportsWorkspace() {
                       </button>
                     </div>
                   </form>
+                )}
+                {history.length > 0 && (
+                  <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border, rgba(0,0,0,0.08))' }}>
+                    <p className="small" style={{ fontWeight: 650, marginBottom: '8px' }}>
+                      Riwayat {isPiutang ? 'Pengembalian' : 'Pembayaran'}
+                    </p>
+                    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '8px' }}>
+                      {history.map(p => (
+                        <li key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                          <span className="small">
+                            {formatDate(p.paidDate)} — <strong>{money(p.amount)}</strong>
+                            {p.note && <span className="muted"> · {p.note}</span>}
+                          </span>
+                          <button
+                            type="button"
+                            className="text-button"
+                            aria-label={`Hapus riwayat ${isPiutang ? 'pengembalian' : 'pembayaran'} ${money(p.amount)}`}
+                            onClick={() => void store.deleteDebtPayment(d, p)}
+                            style={{ color: 'var(--muted)', display: 'inline-flex' }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </article>
             )
