@@ -4,7 +4,8 @@ import { CalendarDays, Check, ChevronRight, Copy, Heart, Home, House, Moon, Plus
 import { AppLogoIcon } from './components/AppLogo'
 import type { FoodIdea, ShoppingItem, ScheduleEvent } from './types'
 import { useHousehold } from './features/household/context'
-import { formatDate, spentIn, TODAY, makeId } from './features/household/model'
+import { formatDate, memoryCategories, spentIn, TODAY, makeId } from './features/household/model'
+import type { JournalMemory } from './features/household/model'
 import { useAccount } from './features/account/context'
 import { AccountMenu, MemberAvatars as Avatars } from './features/account/ProfileAvatar'
 import { householdShortNames, shortName } from './features/account/display'
@@ -198,6 +199,139 @@ function CouplePlacesWorkspace() {
   )
 }
 
+function CoupleJournalWorkspace() {
+  const store = useHousehold()
+  const { currentProfile, nameForPerson: personName } = useAccount()
+  const [title, setTitle] = useState('')
+  const [date, setDate] = useState(TODAY)
+  const [category, setCategory] = useState<JournalMemory['category']>('kencan')
+  const [recordedBy, setRecordedBy] = useState<JournalMemory['recordedBy']>(currentProfile.role)
+  const [note, setNote] = useState('')
+  const [error, setError] = useState('')
+  const memories = [...store.state.memories].sort((a, b) => b.date.localeCompare(a.date))
+  const categoryLabel = (value: JournalMemory['category']) => memoryCategories.find(([key]) => key === value)?.[1] ?? value
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!title.trim()) return
+    const msg = await store.saveMemory({
+      id: makeId(),
+      title: title.trim(),
+      date,
+      note: note.trim(),
+      category,
+      recordedBy
+    })
+    setError(msg ?? '')
+    if (!msg) {
+      setTitle('')
+      setNote('')
+      setDate(TODAY)
+    }
+  }
+
+  return (
+    <section>
+      <SectionHeading title="Jurnal Berdua" />
+      <p className="muted small" style={{ marginTop: '-8px', marginBottom: '18px' }}>
+        Catat momen-momen kecil dan besar yang sudah kalian lewati berdua, supaya cerita rumah ini tidak terlupa.
+      </p>
+
+      {/* Form Catat Momen Baru */}
+      <form onSubmit={handleAdd} className="workspace-form house-entry-form" style={{ marginBottom: '24px' }}>
+        <div className="form-field">
+          <label htmlFor="journal-title">Judul momen</label>
+          <input
+            id="journal-title"
+            required
+            maxLength={150}
+            placeholder="Misalnya, Dinner anniversary, Hari pertama di rumah baru..."
+            value={title}
+            onChange={e => { setTitle(e.target.value); setError('') }}
+          />
+        </div>
+
+        <div className="form-columns">
+          <div className="form-field">
+            <label htmlFor="journal-date">Tanggal</label>
+            <input
+              id="journal-date"
+              type="date"
+              required
+              value={date}
+              onChange={e => setDate(e.target.value)}
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="journal-category">Kategori</label>
+            <select
+              id="journal-category"
+              value={category}
+              onChange={e => setCategory(e.target.value as JournalMemory['category'])}
+            >
+              {memoryCategories.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="form-field">
+          <label htmlFor="journal-by">Dicatat oleh</label>
+          <select
+            id="journal-by"
+            value={recordedBy}
+            onChange={e => setRecordedBy(e.target.value as JournalMemory['recordedBy'])}
+          >
+            <option value="suami">{personName('suami')}</option>
+            <option value="istri">{personName('istri')}</option>
+          </select>
+        </div>
+
+        <div className="form-field">
+          <label htmlFor="journal-note">Cerita momen ini (opsional)</label>
+          <textarea
+            id="journal-note"
+            rows={3}
+            placeholder="Tulis sedikit ceritanya di sini..."
+            value={note}
+            onChange={e => setNote(e.target.value)}
+          />
+        </div>
+
+        {error && <p className="form-error" role="alert">{error}</p>}
+        <button type="submit" disabled={store.pending} className="primary-button" style={{ width: '100%' }}>
+          <Plus size={16} /> Catat momen
+        </button>
+      </form>
+
+      {/* Timeline Momen Tersimpan */}
+      {memories.length ? <div className="journal-list">{memories.map(memory => (
+        <article className="journal-item" key={memory.id}>
+          <span className="journal-dot" aria-hidden="true" />
+          <div className="journal-card">
+            <div className="row-between">
+              <h3>{memory.title}</h3>
+              <button
+                type="button"
+                className="icon-button delete-button"
+                aria-label={`Hapus ${memory.title}`}
+                onClick={() => store.setEditor({ type: 'confirm', title: 'Hapus momen?', description: `“${memory.title}” dihapus dari Jurnal Berdua.`, confirm: () => store.deleteMemory(memory.id) })}
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+            <p className="journal-meta">
+              <time>{formatDate(memory.date, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</time>
+              <span className="journal-category">{categoryLabel(memory.category)}</span>
+            </p>
+            {memory.note && <p className="journal-note">{memory.note}</p>}
+            <p className="small muted journal-by">Dicatat oleh {personName(memory.recordedBy)}</p>
+          </div>
+        </article>
+      ))}</div> : <Empty>Belum ada momen yang dicatat.<br />Tulis cerita pertama kalian di jurnal ini.</Empty>}
+    </section>
+  )
+}
+
 export default function App() {
   const store = useHousehold()
   const { state, setEditor, notice, setNotice } = store
@@ -210,7 +344,7 @@ export default function App() {
   const [theme, setTheme] = useTheme()
   const [activeTab, setActiveTab] = useState<Tab>('today')
   const [budgetSubTab, setBudgetSubTab] = useState<'budget' | 'debts'>('budget')
-  const [coupleSubTab, setCoupleSubTab] = useState<'decision' | 'shopping' | 'goals' | 'places'>('decision')
+  const [coupleSubTab, setCoupleSubTab] = useState<'decision' | 'shopping' | 'goals' | 'places' | 'journal'>('decision')
   const [houseSubTab, setHouseSubTab] = useState<'bills' | 'vault' | 'contacts' | 'chores'>('bills')
   const shoppingList = state.shopping
   const [newShoppingItem, setNewShoppingItem] = useState('')
@@ -375,12 +509,13 @@ export default function App() {
         </>}
 
         {activeTab === 'us' && <>
-          <div className="segmented-control" role="group" aria-label="Bagian ruang berdua">{([{ key: 'decision', label: 'Pilih ide' }, { key: 'shopping', label: `Belanja (${pendingShopping.length})` }, { key: 'goals', label: 'Impian' }, { key: 'places', label: 'Wishlist Kencan' }] as const).map(tab => <button key={tab.key} aria-pressed={coupleSubTab === tab.key} onClick={() => setCoupleSubTab(tab.key)}>{tab.label}</button>)}</div>
+          <div className="segmented-control" role="group" aria-label="Bagian ruang berdua">{([{ key: 'decision', label: 'Pilih ide' }, { key: 'shopping', label: `Belanja (${pendingShopping.length})` }, { key: 'goals', label: 'Impian' }, { key: 'places', label: 'Wishlist Kencan' }, { key: 'journal', label: 'Jurnal Berdua' }] as const).map(tab => <button key={tab.key} aria-pressed={coupleSubTab === tab.key} onClick={() => setCoupleSubTab(tab.key)}>{tab.label}</button>)}</div>
           {coupleSubTab === 'decision' && <><div className="decision-grid"><section className="decision-card decision-dark"><Waves /><span className="shortcut-icon"><Utensils size={25} /></span><h2>Makan apa hari ini?</h2><p>Tidak perlu debat panjang.<br />Serahkan satu pilihan pada kami.</p><div className="decision-result" aria-live="polite" aria-busy={spinning === 'food'}>{spinning === 'food' ? <p>Sebentar, lagi pilih menu...</p> : pickedFood ? <><h3>{pickedFood.title}</h3><span>{pickedFood.tag}</span></> : <p>{state.foodIdeas.length ? 'Pilihan menu harian kalian akan muncul di sini.' : 'Tambahkan pilihan menu di bawah untuk mulai mengacak.'}</p>}</div><button className="primary-button" disabled={!state.foodIdeas.length} onClick={() => spin('food')} aria-label="Acak menu makan hari ini"><Sparkles size={18} />Pilihkan untuk kami</button></section>
           <section className="decision-card decision-light"><span className="shortcut-icon"><Heart size={25} /></span><h2>Waktu untuk kita.</h2><p>Keluar sebentar atau di rumah,<br />yang penting bareng kamu.</p><div className="decision-result" aria-live="polite" aria-busy={spinning === 'date'}>{spinning === 'date' ? <p>Sebentar, lagi cari ide...</p> : pickedDate ? <h3>{pickedDate}</h3> : <p>{state.dateIdeas.length ? 'Ide kencan kalian akan muncul di sini.' : 'Tambahkan ide kencan di bawah untuk mulai mengacak.'}</p>}</div><button className="primary-button" disabled={!state.dateIdeas.length} onClick={() => spin('date')} aria-label="Acak ide kencan berdua"><Sparkles size={18} />Cari ide kencan</button></section></div><div className="decision-grid"><IdeaList kind="food" /><IdeaList kind="date" /></div></>}
           {coupleSubTab === 'shopping' && <section><SectionHeading title="Daftar belanja kita" /><form onSubmit={addShopping} className="shopping-form"><label className="sr-only" htmlFor="shopping-item">Nama barang belanja</label><input id="shopping-item" placeholder="Mau titip apa?" required maxLength={120} value={newShoppingItem} onChange={event => setNewShoppingItem(event.target.value)} /><button type="submit" disabled={store.pending} className="primary-button" aria-label="Tambah barang belanja"><Plus size={20} /><span>Tambah</span></button></form><div className="shopping-list">{shoppingList.length ? shoppingList.map(item => <div className={`shopping-row ${item.isBought ? 'is-bought' : ''}`} key={item.id}><label><input type="checkbox" disabled={store.pending} checked={item.isBought} onChange={() => toggleShopping(item.id)} /><span className="checkbox-mark" aria-hidden="true">{item.isBought && <Check size={14} />}</span><span className="shopping-copy">{item.title}<small>Dititip oleh {personName(item.addedBy)}</small></span></label><button className="delete-button icon-button" onClick={() => deleteShopping(item.id)} aria-label={`Hapus ${item.title}`}><Trash2 size={16} /></button></div>) : <Empty>Daftar belanja masih kosong.<br />Tulis apa saja yang perlu dibawa pulang.</Empty>}</div></section>}
           {coupleSubTab === 'goals' && <GoalsWorkspace />}
           {coupleSubTab === 'places' && <CouplePlacesWorkspace />}
+          {coupleSubTab === 'journal' && <CoupleJournalWorkspace />}
         </>}
       </div>}
 
