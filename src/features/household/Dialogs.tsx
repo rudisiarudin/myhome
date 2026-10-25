@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Car, Check, Gamepad2, Heart, ReceiptText, ShoppingBag, Utensils } from 'lucide-react'
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Car, Check, Gamepad2, Heart, ReceiptText, ShoppingBag, Utensils, Wallet } from 'lucide-react'
 import { useHousehold } from './context'
 import type { Editor } from './store'
-import { formatDate, goalBalance, makeId, money, TODAY, walletBalance } from './model'
-import type { HouseholdWallet, SavingGoal, Transaction } from './model'
+import { formatDate, goalBalance, isDateKey, makeId, money, TODAY, walletBalance } from './model'
+import type { DebtPayment, HouseholdWallet, SavingGoal, Transaction } from './model'
 import { Field, FormEnd, Modal, MoneyInput } from './ui'
 import { AgendaForm } from './AgendaForm'
 import { BillEntryForm, ContactEntryForm, DocumentEntryForm } from './HouseForms'
@@ -113,6 +113,29 @@ function PaymentForm({ id, role }: { id: string; role: Transaction['recordedBy']
   return <Modal title="Catat tagihan lunas" subtitle="Pencatatan tagihan, bukan pembayaran bank sungguhan." onClose={() => store.setEditor(null)}><form className="workspace-form" onSubmit={async event => { event.preventDefault(); setError(await store.payBill(id, walletId, role, currentProfile.id) ?? '') }}><div className="payment-summary"><ReceiptText size={28} /><h3>{bill.title}</h3><strong>{money(bill.amount)}</strong><p>Jatuh tempo {formatDate(bill.dueDate)}</p></div><Field id="payment-wallet" label="Dibayar dari dompet"><select id="payment-wallet" required value={walletId} onChange={event => setWalletId(event.target.value)}><option value="" disabled>Pilih dompet</option>{store.state.wallets.map(wallet => <option key={wallet.id} value={wallet.id}>{wallet.name} · {money(walletBalance(wallet, store.state.transactions))}</option>)}</select></Field><p className="form-hint">Saldo catatan dompet akan berkurang dan satu pengeluaran dibuat otomatis. Tidak perlu mencatatnya dua kali.</p><FormEnd error={error} label="Tandai lunas & catat" /></form></Modal>
 }
 
+function DebtPaymentForm({ id }: { id: string }) {
+  const store = useHousehold()
+  const debt = store.state.debts.find(item => item.id === id)
+  const isPiutang = debt?.type === 'piutang'
+  const [amount, setAmount] = useState(debt ? String(debt.monthlyPayment ? Math.min(debt.monthlyPayment, debt.remainingAmount) : debt.remainingAmount) : '')
+  const [date, setDate] = useState(TODAY)
+  const [note, setNote] = useState('')
+  const [error, setError] = useState('')
+  if (!debt) return null
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    // Validasi lokal lebih dulu (pesan sama dengan demo store): provider connected
+    // tidak memvalidasi nominal terhadap sisa, dan dialog tidak boleh menutup bila tidak valid.
+    const value = Number(amount)
+    if (!amount || Number.isNaN(value) || value <= 0) { setError('Nominal harus berupa rupiah utuh dan lebih dari Rp0.'); return }
+    if (value > debt.remainingAmount) { setError(`Nominal tidak boleh melebihi sisa saat ini (${money(debt.remainingAmount)}).`); return }
+    if (!isDateKey(date)) { setError('Pilih tanggal pembayaran yang valid.'); return }
+    const payment: DebtPayment = { id: makeId(), debtId: debt.id, amount: value, paidDate: date, note: note.trim() }
+    setError(await store.saveDebtPayment(debt, payment) ?? '')
+  }
+  return <Modal title={isPiutang ? 'Catat Pengembalian' : 'Catat Pembayaran'} subtitle={isPiutang ? 'Uang yang dikembalikan peminjam, dicatat dari sisa piutang.' : 'Angsuran yang dibayar, dicatat dari sisa utang.'} onClose={() => store.setEditor(null)}><form className="workspace-form" onSubmit={submit}><div className="payment-summary"><Wallet size={28} /><h3>{debt.title}</h3><strong>{money(debt.remainingAmount)}</strong><p>{isPiutang ? 'Belum kembali' : 'Sisa utang'} · {debt.lenderOrBorrower}</p></div><MoneyInput id="debt-payment-amount" label={isPiutang ? 'Nominal pengembalian' : 'Nominal pembayaran'} value={amount} onChange={value => { setAmount(value); setError('') }} /><div className="form-columns"><Field id="debt-payment-date" label="Tanggal"><input id="debt-payment-date" type="date" required max={TODAY} value={date} onChange={event => setDate(event.target.value)} /></Field><Field id="debt-payment-note" label="Catatan (opsional)"><input id="debt-payment-note" type="text" maxLength={200} placeholder="Contoh: transfer BCA / cash" value={note} onChange={event => setNote(event.target.value)} /></Field></div><p className="form-hint">Sisa saat ini {money(debt.remainingAmount)}. Setelah dicatat, sisa menjadi {money(Math.max(debt.remainingAmount - (Number(amount) || 0), 0))}. Riwayatnya tersimpan di kartu dan bisa dihapus bila keliru.</p><FormEnd error={error} label={isPiutang ? 'Simpan pengembalian' : 'Simpan pembayaran'} /></form></Modal>
+}
+
 function GoalForm({ id }: { id?: string }) {
   const store = useHousehold()
   const existing = store.state.goals.find(goal => goal.id === id)
@@ -143,6 +166,7 @@ export function HouseholdDialogs({ role }: { role: Transaction['recordedBy'] }) 
     case 'document': return <HouseRecordEditor key={key} type="document" id={editor.id} />
     case 'contact': return <HouseRecordEditor key={key} type="contact" id={editor.id} />
     case 'pay': return <PaymentForm key={key} id={editor.id} role={role} />
+    case 'debtPay': return <DebtPaymentForm key={key} id={editor.id} />
     case 'goal': return <GoalForm key={key} id={editor.id} />
     case 'confirm': return <ConfirmForm editor={editor} />
   }
