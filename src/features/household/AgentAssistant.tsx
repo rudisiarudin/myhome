@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Bot, Send, SlidersHorizontal, Sparkles, Trash2, X } from 'lucide-react'
+import { Bot, Send, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import { useHousehold } from './context'
 import { useAccount } from '../account/context'
 import { daysUntil, formatDate, goalBalance, makeId, money, spentIn, TODAY, walletBalance } from './model'
@@ -227,10 +227,9 @@ async function askLLM(settings: AgentSettings, state: HouseholdState, history: C
   }
 }
 
-export function AgentAssistant() {
+export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const store = useHousehold()
   const { nameForPerson } = useAccount()
-  const [open, setOpen] = useState(false)
   const [view, setView] = useState<'chat' | 'settings'>('chat')
   const [messages, setMessages] = useState<ChatMessage[]>(loadMessages)
   const [input, setInput] = useState('')
@@ -259,7 +258,7 @@ export function AgentAssistant() {
     if (list) list.scrollTop = list.scrollHeight
   }, [messages, sending, open, view])
 
-  const close = () => { setOpen(false); setView('chat') }
+  const close = () => { onOpenChange(false); setView('chat') }
 
   const openSettings = () => {
     setBaseUrl(settings.baseUrl)
@@ -325,7 +324,6 @@ export function AgentAssistant() {
   }
 
   return <>
-    {!open && <button type="button" className="agent-fab" onClick={() => setOpen(true)} aria-label="Buka Asisten Myhome"><Sparkles size={21} /><span>Asisten</span></button>}
     {open && <dialog ref={dialogRef} className="expense-dialog workspace-dialog agent-dialog" aria-labelledby={titleId} onCancel={close} onClick={event => { if (event.target === event.currentTarget) close() }}>
       <div className="dialog-content agent-content">
         <span className="sheet-handle" aria-hidden="true" />
