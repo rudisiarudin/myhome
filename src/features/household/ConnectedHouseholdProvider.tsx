@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { errorMessage } from '../../lib/errors'
 import { HouseholdContext } from './context'
 import type { Editor, HouseholdStore } from './store'
-import type { HouseholdState } from './model'
+import type { DebtLoan, HouseholdState } from './model'
 import { TODAY } from './model'
 import { createHouseholdRepository } from './repository'
 
@@ -95,6 +95,7 @@ export function ConnectedHouseholdProvider({ client, householdId, children }: {
     {refreshError && <button className="primary-button" disabled={refreshing} onClick={() => void refresh()}>Coba muat ulang</button>}
   </section>
 
+  const debtData = (debt: DebtLoan) => ({ title: debt.title, type: debt.type, lender_or_borrower: debt.lenderOrBorrower, total_amount: debt.totalAmount, remaining_amount: debt.remainingAmount, monthly_payment: debt.monthlyPayment ?? null, due_day: debt.dueDay ?? null, tenor_months: debt.tenorMonths ?? null, remaining_months: debt.remainingMonths ?? null, notes: debt.notes ?? '' })
   const existing = (items: { id: string }[], id: string) => items.some(item => item.id === id) ? id : undefined
   const financialId = (items: { id: string }[], id: string) => ({ id: existing(items, id) })
   const remove = (table: string, id: string) => run(() => repository.remove(table, id), 'Catatan dihapus.')
@@ -132,8 +133,16 @@ export function ConnectedHouseholdProvider({ client, householdId, children }: {
     deleteShopping: id => remove('shopping_items', id),
     saveIdea: (kind, title) => run(() => repository.save(kind === 'food' ? 'food_ideas' : 'date_ideas', { title, ...(kind === 'food' ? { type: 'masak', tag: '' } : {}) })),
     deleteIdea: (kind, id) => remove(kind === 'food' ? 'food_ideas' : 'date_ideas', id),
-    saveDebt: debt => run(() => repository.save('debts', { title: debt.title, type: debt.type, lender_or_borrower: debt.lenderOrBorrower, total_amount: debt.totalAmount, remaining_amount: debt.remainingAmount, monthly_payment: debt.monthlyPayment ?? null, due_day: debt.dueDay ?? null, tenor_months: debt.tenorMonths ?? null, remaining_months: debt.remainingMonths ?? null, notes: debt.notes ?? '' }, existing(state.debts, debt.id))),
+    saveDebt: debt => run(() => repository.save('debts', debtData(debt), existing(state.debts, debt.id))),
     deleteDebt: id => remove('debts', id),
+    saveDebtPayment: (debt, payment) => run(async () => {
+      await repository.save('debt_payments', { debt_id: payment.debtId, amount: payment.amount, paid_date: payment.paidDate, note: payment.note }, existing(state.debtPayments, payment.id))
+      await repository.save('debts', debtData({ ...debt, remainingAmount: debt.remainingAmount - payment.amount }), debt.id)
+    }, debt.type === 'piutang' ? 'Pengembalian berhasil dicatat.' : 'Pembayaran berhasil dicatat.'),
+    deleteDebtPayment: (debt, payment) => run(async () => {
+      await repository.remove('debt_payments', payment.id)
+      await repository.save('debts', debtData({ ...debt, remainingAmount: Math.min(debt.totalAmount, debt.remainingAmount + payment.amount) }), debt.id)
+    }, 'Riwayat pembayaran dihapus. Sisa dikembalikan seperti semula.'),
     saveMemory: memory => run(() => repository.save('memories', { title: memory.title, date: memory.date, note: memory.note, category: memory.category, recorded_by: memory.recordedBy }, existing(state.memories, memory.id))),
     deleteMemory: id => remove('memories', id),
   }
