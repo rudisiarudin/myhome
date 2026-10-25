@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { bills as sampleBills, contacts as sampleContacts, documents as sampleDocuments, goals as sampleGoals, initialExpenses, schedule } from '../../data/demo'
-import { dateKey, TODAY, isDateKey, isMoney, isPhoneNumber, makeId, normalizePhone, validateTransaction, validateTransactionDeletion, walletBalance } from './model'
-import type { BudgetSettings, DebtLoan, HouseholdBill, HouseholdContact, HouseholdDocument, HouseholdEvent, HouseholdState, HouseholdWallet, JournalMemory, Person, SavingGoal, Transaction, TransactionKind } from './model'
+import { dateKey, TODAY, isDateKey, isMoney, isPhoneNumber, makeId, money, normalizePhone, validateTransaction, validateTransactionDeletion, walletBalance } from './model'
+import type { BudgetSettings, DebtLoan, DebtPayment, HouseholdBill, HouseholdContact, HouseholdDocument, HouseholdEvent, HouseholdState, HouseholdWallet, JournalMemory, Person, SavingGoal, Transaction, TransactionKind } from './model'
 import { HouseholdContext } from './context'
 import { dateIdeas, foodIdeas, initialShopping } from '../../data/demo'
 import type { ShoppingItem } from '../../types'
@@ -54,6 +54,7 @@ function initialState(): HouseholdState {
       { id: 'db1', title: 'Cicilan KPR Rumah', type: 'kpr', lenderOrBorrower: 'Bank Mandiri', totalAmount: 380000000, remainingAmount: 315000000, monthlyPayment: 3850000, dueDay: 10, tenorMonths: 180, remainingMonths: 142, notes: 'Bunga fixed 3 tahun pertama' },
       { id: 'db2', title: 'Cicilan Motor Beat', type: 'kendaraan', lenderOrBorrower: 'FIF Finance', totalAmount: 18500000, remainingAmount: 5200000, monthlyPayment: 780000, dueDay: 25, tenorMonths: 24, remainingMonths: 7, notes: 'Selesai Mei 2027' },
     ],
+    debtPayments: [],
     memories: [
       { id: 'm1', title: 'Anniversary Pernikahan', date: '2026-09-12', note: 'Dinner romantis berdua & evaluasi perjalanan rumah tangga.', category: 'milestone', recordedBy: 'suami' },
       { id: 'm2', title: 'Weekend Getaway Puncak', date: '2026-10-04', note: 'Staycation dingin, masak mie instan bareng & ngopi santai.', category: 'liburan', recordedBy: 'istri' },
@@ -250,8 +251,31 @@ function useStore() {
   }
 
   const deleteDebt = async (id: string) => {
-    setState(current => ({ ...current, debts: current.debts.filter(d => d.id !== id) }))
+    setState(current => ({ ...current, debts: current.debts.filter(d => d.id !== id), debtPayments: current.debtPayments.filter(p => p.debtId !== id) }))
     finish('Data utang/KPR dihapus.')
+    return null
+  }
+
+  const saveDebtPayment = async (debt: DebtLoan, payment: DebtPayment) => {
+    if (!isMoney(payment.amount)) return 'Nominal harus berupa rupiah utuh dan lebih dari Rp0.'
+    if (payment.amount > debt.remainingAmount) return `Nominal tidak boleh melebihi sisa saat ini (${money(debt.remainingAmount)}).`
+    if (!isDateKey(payment.paidDate)) return 'Pilih tanggal pembayaran yang valid.'
+    setState(current => ({
+      ...current,
+      debts: current.debts.map(d => d.id === debt.id ? { ...d, remainingAmount: d.remainingAmount - payment.amount } : d),
+      debtPayments: [payment, ...current.debtPayments.filter(p => p.id !== payment.id)]
+    }))
+    finish(debt.type === 'piutang' ? 'Pengembalian berhasil dicatat.' : 'Pembayaran berhasil dicatat.')
+    return null
+  }
+
+  const deleteDebtPayment = async (debt: DebtLoan, payment: DebtPayment) => {
+    setState(current => ({
+      ...current,
+      debts: current.debts.map(d => d.id === debt.id ? { ...d, remainingAmount: Math.min(d.totalAmount, d.remainingAmount + payment.amount) } : d),
+      debtPayments: current.debtPayments.filter(p => p.id !== payment.id)
+    }))
+    finish('Riwayat pembayaran dihapus. Sisa dikembalikan seperti semula.')
     return null
   }
 
@@ -279,7 +303,7 @@ function useStore() {
     return null
   }
   const deleteIdea = async (kind: 'food' | 'date', id: string) => { setState(current => kind === 'food' ? { ...current, foodIdeas: current.foodIdeas.filter(row => row.id !== id) } : { ...current, dateIdeas: current.dateIdeas.filter(row => row.id !== id) }); return null }
-  return { state, editor, setEditor, notice, setNotice, pending: false, isPreview: true, refreshError: '', refreshing: false, refresh: async () => {}, saveTransaction, deleteTransaction, saveWallet, deleteWallet, saveBudget, saveEvent, deleteEvent, toggleEvent, saveBill, deleteBill, payBill, unpayBill, saveGoal, deleteGoal, saveDocument, deleteDocument, saveContact, deleteContact, toggleChore, saveChore, deleteChore, savePlace, deletePlace, saveShopping, deleteShopping, saveIdea, deleteIdea, saveDebt, deleteDebt, saveMemory, deleteMemory }
+  return { state, editor, setEditor, notice, setNotice, pending: false, isPreview: true, refreshError: '', refreshing: false, refresh: async () => {}, saveTransaction, deleteTransaction, saveWallet, deleteWallet, saveBudget, saveEvent, deleteEvent, toggleEvent, saveBill, deleteBill, payBill, unpayBill, saveGoal, deleteGoal, saveDocument, deleteDocument, saveContact, deleteContact, toggleChore, saveChore, deleteChore, savePlace, deletePlace, saveShopping, deleteShopping, saveIdea, deleteIdea, saveDebt, deleteDebt, saveDebtPayment, deleteDebtPayment, saveMemory, deleteMemory }
 }
 
 type MutationResult = Promise<string | null>
@@ -323,6 +347,8 @@ export interface HouseholdStore {
   deleteIdea: (kind: 'food' | 'date', id: string) => MutationResult
   saveDebt: (debt: DebtLoan) => MutationResult
   deleteDebt: (id: string) => MutationResult
+  saveDebtPayment: (debt: DebtLoan, payment: DebtPayment) => MutationResult
+  deleteDebtPayment: (debt: DebtLoan, payment: DebtPayment) => MutationResult
   saveMemory: (memory: JournalMemory) => MutationResult
   deleteMemory: (id: string) => MutationResult
 }
