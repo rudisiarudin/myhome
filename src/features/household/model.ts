@@ -123,6 +123,14 @@ export interface DebtLoan {
   notes?: string
 }
 
+export interface DebtPayment {
+  id: string
+  debtId: string
+  amount: number
+  paidDate: string
+  note: string
+}
+
 export interface JournalMemory {
   id: string
   title: string
@@ -147,6 +155,7 @@ export interface HouseholdState {
   foodIdeas: FoodIdea[]
   dateIdeas: { id: string; title: string }[]
   debts: DebtLoan[]
+  debtPayments: DebtPayment[]
   memories: JournalMemory[]
 }
 
