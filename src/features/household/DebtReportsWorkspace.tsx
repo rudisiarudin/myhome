@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Plus, Trash2, Download, Wallet, Check, X, CreditCard } from 'lucide-react'
 import { useHousehold } from './context'
-import { money, makeId, walletBalance, TODAY, formatDate, isDateKey } from './model'
-import type { DebtLoan, DebtPayment } from './model'
+import { money, makeId, walletBalance, formatDate } from './model'
+import type { DebtLoan } from './model'
 import { Section } from './ui'
 
 function SectionHeading({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
@@ -21,31 +21,6 @@ export function DebtReportsWorkspace() {
   const [monthlyPayment, setMonthlyPayment] = useState('')
   const [dueDay, setDueDay] = useState('10')
   const [notes, setNotes] = useState('')
-
-  // Form inline pencatatan pembayaran/pengembalian pada kartu utang/piutang
-  const [payingId, setPayingId] = useState<string | null>(null)
-  const [payAmount, setPayAmount] = useState('')
-  const [payDate, setPayDate] = useState(TODAY)
-  const [payNote, setPayNote] = useState('')
-  const [payError, setPayError] = useState('')
-
-  const openPayForm = (d: DebtLoan) => {
-    setPayingId(d.id)
-    setPayAmount(String(d.monthlyPayment ? Math.min(d.monthlyPayment, d.remainingAmount) : d.remainingAmount))
-    setPayDate(TODAY)
-    setPayNote('')
-    setPayError('')
-    setMirrorId(null)
-    setMirrorLender('')
-  }
-
-  const closePayForm = () => {
-    setPayingId(null)
-    setPayAmount('')
-    setPayDate(TODAY)
-    setPayNote('')
-    setPayError('')
-  }
 
   // Kartu utang pasangan: cermin utang dari piutang yang dibiayai kartu kredit/pinjaman,
   // agar Net Worth tidak tergelembung oleh piutang yang bukan uang tunai kita.
@@ -74,7 +49,6 @@ export function DebtReportsWorkspace() {
   }
 
   const openMirrorForm = (d: DebtLoan) => {
-    closePayForm()
     setMirrorId(d.id)
     setMirrorLender('')
   }
@@ -88,26 +62,6 @@ export function DebtReportsWorkspace() {
     e.preventDefault()
     await store.saveDebt(buildMirrorDebt(d, mirrorLender))
     closeMirrorForm()
-  }
-
-  const handleRecordPayment = (e: React.FormEvent, d: DebtLoan) => {
-    e.preventDefault()
-    const amount = Number(payAmount)
-    if (!payAmount || Number.isNaN(amount) || amount <= 0) {
-      setPayError('Nominal harus lebih dari 0.')
-      return
-    }
-    if (amount > d.remainingAmount) {
-      setPayError(`Nominal tidak boleh melebihi sisa saat ini (${money(d.remainingAmount)}).`)
-      return
-    }
-    if (!isDateKey(payDate)) {
-      setPayError('Pilih tanggal pembayaran yang valid.')
-      return
-    }
-    const payment: DebtPayment = { id: makeId(), debtId: d.id, amount, paidDate: payDate, note: payNote.trim() }
-    void store.saveDebtPayment(d, payment)
-    closePayForm()
   }
 
   // Perhitungan Neraca Kekayaan Bersih (Net Worth)
@@ -379,13 +333,13 @@ export function DebtReportsWorkspace() {
                     <Trash2 size={15} />
                   </button>
                 </div>
-                {d.remainingAmount > 0 && payingId !== d.id && mirrorId !== d.id && (
+                {d.remainingAmount > 0 && mirrorId !== d.id && (
                   <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       className="secondary-button"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                      onClick={() => openPayForm(d)}
+                      onClick={() => store.setEditor({ type: 'debtPay', id: d.id })}
                     >
                       <Wallet size={15} /> {isPiutang ? 'Catat Pengembalian' : 'Catat Pembayaran'}
                     </button>
@@ -400,58 +354,6 @@ export function DebtReportsWorkspace() {
                       </button>
                     )}
                   </div>
-                )}
-                {d.remainingAmount > 0 && payingId === d.id && (
-                  <form onSubmit={e => handleRecordPayment(e, d)} className="workspace-form" style={{ marginTop: '14px' }}>
-                    <div className="form-columns">
-                      <div className="form-field">
-                        <label htmlFor={`debt-pay-${d.id}`}>{isPiutang ? 'Nominal Pengembalian (Rp)' : 'Nominal Pembayaran (Rp)'}</label>
-                        <input
-                          id={`debt-pay-${d.id}`}
-                          type="number"
-                          min="1"
-                          max={d.remainingAmount}
-                          required
-                          autoFocus
-                          value={payAmount}
-                          onChange={e => setPayAmount(e.target.value)}
-                        />
-                      </div>
-                      <div className="form-field">
-                        <label htmlFor={`debt-pay-date-${d.id}`}>Tanggal</label>
-                        <input
-                          id={`debt-pay-date-${d.id}`}
-                          type="date"
-                          required
-                          max={TODAY}
-                          value={payDate}
-                          onChange={e => setPayDate(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="form-field">
-                      <label htmlFor={`debt-pay-note-${d.id}`}>Catatan (opsional)</label>
-                      <input
-                        id={`debt-pay-note-${d.id}`}
-                        type="text"
-                        placeholder="Contoh: transfer BCA / cash"
-                        value={payNote}
-                        onChange={e => setPayNote(e.target.value)}
-                      />
-                    </div>
-                    <p className="small muted" style={{ margin: '0 0 12px' }}>
-                      Sisa saat ini {money(d.remainingAmount)}. Setelah dicatat, sisa menjadi {money(Math.max(d.remainingAmount - (Number(payAmount) || 0), 0))}.
-                    </p>
-                    {payError && <p className="form-error" role="alert">{payError}</p>}
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="submit" className="primary-button" disabled={store.pending} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <Check size={15} /> Simpan
-                      </button>
-                      <button type="button" className="secondary-button" onClick={closePayForm} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        <X size={15} /> Batal
-                      </button>
-                    </div>
-                  </form>
                 )}
                 {isPiutang && mirrorId === d.id && (
                   <form onSubmit={e => handleCreateMirror(e, d)} className="workspace-form" style={{ marginTop: '14px' }}>

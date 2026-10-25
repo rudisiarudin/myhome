@@ -16,6 +16,7 @@ export type Editor =
   | { type: 'document'; id?: string }
   | { type: 'contact'; id?: string }
   | { type: 'pay'; id: string }
+  | { type: 'debtPay'; id: string }
   | { type: 'goal'; id?: string }
   | { type: 'confirm'; title: string; description: string; confirm: () => string | null | Promise<string | null> }
 
