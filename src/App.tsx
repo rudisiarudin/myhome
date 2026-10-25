@@ -13,6 +13,7 @@ import { BudgetWorkspace, CalendarWorkspace, GoalsWorkspace, TransactionList } f
 import { HouseWorkspace } from './features/household/HouseWorkspace'
 import { DebtReportsWorkspace } from './features/household/DebtReportsWorkspace'
 import { HouseholdDialogs } from './features/household/Dialogs'
+import { AgentAssistant } from './features/household/AgentAssistant'
 import './App.css'
 import './features/household/Workspace.css'
 import { useTheme } from './theme'
@@ -523,6 +524,7 @@ export default function App() {
       <nav className="bottom-nav" aria-label="Navigasi utama">{tabs.map(tab => <button key={tab.key} className={`nav-button ${activeTab === tab.key ? 'active' : ''}`} aria-current={activeTab === tab.key ? 'page' : undefined} onClick={() => navigate(tab.key)}><tab.icon size={21} strokeWidth={activeTab === tab.key ? 2.6 : 1.9} /><span>{tab.label}</span><i aria-hidden="true" /></button>)}</nav>
 
       <HouseholdDialogs role={currentProfile.role} />
+      <AgentAssistant />
       <div className={`notice ${notice ? 'notice-visible' : ''}`} role="status">{notice}</div>
     </main>
   </div>
