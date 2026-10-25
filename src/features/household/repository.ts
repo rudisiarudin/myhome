@@ -41,6 +41,15 @@ export function decodeHousehold(rows: Record<string, Row[]>): HouseholdState {
       remainingMonths: r.remaining_months == null ? undefined : Number(r.remaining_months),
       notes: optional(r, 'notes')
     })),
+    debtPayments: (rows.debt_payments ?? [])
+      .sort((a, b) => text(b, 'paid_date').localeCompare(text(a, 'paid_date')) || text(b, 'created_at').localeCompare(text(a, 'created_at')))
+      .map(r => ({
+        id: text(r, 'id'),
+        debtId: text(r, 'debt_id'),
+        amount: number(r, 'amount'),
+        paidDate: text(r, 'paid_date'),
+        note: text(r, 'note')
+      })),
     memories: (rows.memories ?? []).map(r => ({
       id: text(r, 'id'),
       title: text(r, 'title'),
@@ -54,7 +63,7 @@ export function decodeHousehold(rows: Record<string, Row[]>): HouseholdState {
 
 export function createHouseholdRepository(client: SupabaseClient, householdId: string) {
   const db = client.schema('myhome')
-  const tables = ['wallets', 'transactions', 'saving_goals', 'bill_status', 'events', 'documents', 'contacts', 'chores', 'wishlist_places', 'shopping_items', 'food_ideas', 'date_ideas', 'debts', 'memories']
+  const tables = ['wallets', 'transactions', 'saving_goals', 'bill_status', 'events', 'documents', 'contacts', 'chores', 'wishlist_places', 'shopping_items', 'food_ideas', 'date_ideas', 'debts', 'memories', 'debt_payments']
   const readAll = async (table: string): Promise<Row[]> => {
     const rows: Row[] = []
     for (let offset = 0; ; offset += 500) {
