@@ -105,6 +105,9 @@ export const documentCategories = [
 export const contactCategories = [
   ['servis', 'Servis & perawatan'], ['keamanan', 'Keamanan'], ['medis', 'Kesehatan'], ['rt', 'Lingkungan / RT'], ['lainnya', 'Lainnya'],
 ] as const
+export const memoryCategories = [
+  ['kencan', 'Kencan'], ['milestone', 'Momen penting'], ['liburan', 'Liburan'], ['rumah', 'Rumah'],
+] as const
 
 export interface DebtLoan {
   id: string
