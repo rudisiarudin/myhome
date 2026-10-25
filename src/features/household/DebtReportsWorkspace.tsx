@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2, Download, Wallet, Check, X } from 'lucide-react'
+import { Plus, Trash2, Download, Wallet, Check, X, CreditCard } from 'lucide-react'
 import { useHousehold } from './context'
 import { money, makeId, walletBalance, TODAY, formatDate, isDateKey } from './model'
 import type { DebtLoan, DebtPayment } from './model'
@@ -35,6 +35,8 @@ export function DebtReportsWorkspace() {
     setPayDate(TODAY)
     setPayNote('')
     setPayError('')
+    setMirrorId(null)
+    setMirrorLender('')
   }
 
   const closePayForm = () => {
@@ -43,6 +45,49 @@ export function DebtReportsWorkspace() {
     setPayDate(TODAY)
     setPayNote('')
     setPayError('')
+  }
+
+  // Kartu utang pasangan: cermin utang dari piutang yang dibiayai kartu kredit/pinjaman,
+  // agar Net Worth tidak tergelembung oleh piutang yang bukan uang tunai kita.
+  const [mirrorId, setMirrorId] = useState<string | null>(null)
+  const [mirrorLender, setMirrorLender] = useState('')
+  // Checkbox + nama pemberi pinjaman pada form tambah piutang
+  const [mirrorPair, setMirrorPair] = useState(false)
+  const [mirrorLenderName, setMirrorLenderName] = useState('')
+
+  const buildMirrorDebt = (source: DebtLoan, lenderName: string): DebtLoan => {
+    // Tidak ada tipe generik 'utang' pada pilihan jenis; 'personal' (Utang Pinjaman Pribadi)
+    // adalah wadah generiknya — bukan KPR dan bukan kredit kendaraan.
+    const marker = `Utang pasangan piutang "${source.title}" — dibiayai kartu kredit/pinjaman.`
+    const baseNotes = source.notes?.trim()
+    return {
+      id: makeId(),
+      title: source.title,
+      type: 'personal',
+      lenderOrBorrower: lenderName.trim() || 'Kartu Kredit',
+      totalAmount: source.totalAmount,
+      remainingAmount: source.remainingAmount,
+      monthlyPayment: source.monthlyPayment,
+      dueDay: source.dueDay,
+      notes: baseNotes ? `${baseNotes}${/[.!?]$/.test(baseNotes) ? ' ' : '. '}${marker}` : marker
+    }
+  }
+
+  const openMirrorForm = (d: DebtLoan) => {
+    closePayForm()
+    setMirrorId(d.id)
+    setMirrorLender('')
+  }
+
+  const closeMirrorForm = () => {
+    setMirrorId(null)
+    setMirrorLender('')
+  }
+
+  const handleCreateMirror = async (e: React.FormEvent, d: DebtLoan) => {
+    e.preventDefault()
+    await store.saveDebt(buildMirrorDebt(d, mirrorLender))
+    closeMirrorForm()
   }
 
   const handleRecordPayment = (e: React.FormEvent, d: DebtLoan) => {
@@ -76,7 +121,7 @@ export function DebtReportsWorkspace() {
   const totalDebts = state.debts.filter(d => d.type !== 'piutang').reduce((sum, d) => sum + d.remainingAmount, 0)
   const netWorth = totalAssets - totalDebts
 
-  const handleAddDebt = (e: React.FormEvent) => {
+  const handleAddDebt = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim() || !totalAmount) return
     const tot = Number(totalAmount)
@@ -92,13 +137,19 @@ export function DebtReportsWorkspace() {
       dueDay: dueDay ? Number(dueDay) : undefined,
       notes: notes.trim()
     }
-    store.saveDebt(item)
+    const message = await store.saveDebt(item)
+    if (message) return // Simpan gagal: jangan buat kartu pasangan, jangan kosongkan form
+    if (type === 'piutang' && mirrorPair) {
+      await store.saveDebt(buildMirrorDebt(item, mirrorLenderName))
+    }
     setTitle('')
     setLender('')
     setTotalAmount('')
     setRemainingAmount('')
     setMonthlyPayment('')
     setNotes('')
+    setMirrorPair(false)
+    setMirrorLenderName('')
   }
 
   // Ekspor CSV / Excel
@@ -258,6 +309,35 @@ export function DebtReportsWorkspace() {
             />
           </div>
 
+          {type === 'piutang' && (
+            <div className="form-field">
+              <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontWeight: 500, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={mirrorPair}
+                  onChange={e => setMirrorPair(e.target.checked)}
+                  style={{ marginTop: '3px' }}
+                />
+                <span>Piutang ini dibiayai kartu kredit / pinjaman lain — buat kartu utang pasangan sekaligus</span>
+              </label>
+              {mirrorPair && (
+                <div style={{ marginTop: '10px' }}>
+                  <label htmlFor="debt-mirror-lender">Dibiayai dari (nama kartu / pemberi pinjaman)</label>
+                  <input
+                    id="debt-mirror-lender"
+                    type="text"
+                    placeholder="Contoh: Tokopedia Card"
+                    value={mirrorLenderName}
+                    onChange={e => setMirrorLenderName(e.target.value)}
+                  />
+                  <p className="small muted" style={{ margin: '6px 0 0' }}>
+                    Kartu utang dengan total &amp; sisa yang sama akan dibuat, supaya Neraca Kekayaan Bersih tetap seimbang.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           <button type="submit" className="primary-button" style={{ width: '100%' }}>
             <Plus size={16} /> Simpan Pinjaman / KPR
           </button>
@@ -299,15 +379,27 @@ export function DebtReportsWorkspace() {
                     <Trash2 size={15} />
                   </button>
                 </div>
-                {d.remainingAmount > 0 && payingId !== d.id && (
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    style={{ marginTop: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                    onClick={() => openPayForm(d)}
-                  >
-                    <Wallet size={15} /> {isPiutang ? 'Catat Pengembalian' : 'Catat Pembayaran'}
-                  </button>
+                {d.remainingAmount > 0 && payingId !== d.id && mirrorId !== d.id && (
+                  <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      onClick={() => openPayForm(d)}
+                    >
+                      <Wallet size={15} /> {isPiutang ? 'Catat Pengembalian' : 'Catat Pembayaran'}
+                    </button>
+                    {isPiutang && (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                        onClick={() => openMirrorForm(d)}
+                      >
+                        <CreditCard size={15} /> Buat Utang Pasangan
+                      </button>
+                    )}
+                  </div>
                 )}
                 {d.remainingAmount > 0 && payingId === d.id && (
                   <form onSubmit={e => handleRecordPayment(e, d)} className="workspace-form" style={{ marginTop: '14px' }}>
@@ -356,6 +448,32 @@ export function DebtReportsWorkspace() {
                         <Check size={15} /> Simpan
                       </button>
                       <button type="button" className="secondary-button" onClick={closePayForm} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <X size={15} /> Batal
+                      </button>
+                    </div>
+                  </form>
+                )}
+                {isPiutang && mirrorId === d.id && (
+                  <form onSubmit={e => handleCreateMirror(e, d)} className="workspace-form" style={{ marginTop: '14px' }}>
+                    <div className="form-field">
+                      <label htmlFor={`debt-mirror-${d.id}`}>Dibiayai dari (nama kartu / pemberi pinjaman)</label>
+                      <input
+                        id={`debt-mirror-${d.id}`}
+                        type="text"
+                        placeholder="Contoh: Tokopedia Card"
+                        autoFocus
+                        value={mirrorLender}
+                        onChange={e => setMirrorLender(e.target.value)}
+                      />
+                    </div>
+                    <p className="small muted" style={{ margin: '0 0 12px' }}>
+                      Kartu utang baru akan dibuat dengan total {money(d.totalAmount)} dan sisa {money(d.remainingAmount)} (mengikuti piutang ini), agar Neraca Kekayaan Bersih seimbang. Pembayaran kartu utang ini tetap dicatat terpisah.
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button type="submit" className="primary-button" disabled={store.pending} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <Check size={15} /> Simpan
+                      </button>
+                      <button type="button" className="secondary-button" onClick={closeMirrorForm} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                         <X size={15} /> Batal
                       </button>
                     </div>
