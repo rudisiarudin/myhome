@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Bot, Send, SlidersHorizontal, Sparkles, Trash2, X } from 'lucide-react'
+import { Bot, Send, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import { useHousehold } from './context'
 import { useAccount } from '../account/context'
 import { daysUntil, formatDate, goalBalance, makeId, money, spentIn, TODAY, walletBalance } from './model'
@@ -18,11 +18,12 @@ interface AgentSettings {
   apiKey: string
 }
 
+const LEGACY_DEFAULT_MODEL = 'deepseek-ai/deepseek-v4.1-flash'
 const SETTINGS_KEY = 'myhome.agent.settings'
 const MESSAGES_KEY = 'myhome.agent.messages'
 const DEFAULT_SETTINGS: AgentSettings = {
   baseUrl: 'https://integrate.api.nvidia.com/v1',
-  model: 'deepseek-ai/deepseek-v4.1-flash',
+  model: 'z-ai/glm-5.3-flash',
   apiKey: '',
 }
 
@@ -36,6 +37,8 @@ const WELCOME: ChatMessage = {
 
 const FALLBACK_NO_KEY = 'Maaf, pertanyaan itu belum bisa saya jawab dari data dasar Myhome. Untuk pertanyaan bebas, aktifkan mode AI dulu: tap ikon pengaturan di atas panel ini, lalu isi API key dari penyedia model (misalnya NVIDIA). API key hanya tersimpan di perangkat ini.\n\nSementara itu, saya bisa menjawab soal: ringkasan hari ini, tagihan, cicilan/utang/piutang, saldo dompet, agenda, impian, dan belanja.'
 
+const FALLBACK_TIMEOUT = 'Mode AI terlalu lama menjawab (lebih dari 150 detik) sehingga permintaan dihentikan. Endpoint gratis memang bisa lambat — coba lagi sebentar, atau pilih model yang lebih ringan di Pengaturan Asisten.\n\nSaya tetap bisa menjawab pertanyaan dasar soal tagihan, cicilan, saldo, agenda, dan belanja tanpa mode AI.'
+
 const FALLBACK_ERROR = 'Maaf, mode AI sedang tidak bisa dihubungi. Periksa lagi Base URL, nama model, dan API key di Pengaturan Asisten, lalu coba lagi — beberapa endpoint juga tidak mengizinkan akses langsung dari browser (CORS).\n\nSaya tetap bisa menjawab pertanyaan dasar soal tagihan, cicilan, saldo, agenda, dan belanja tanpa mode AI.'
 
 function loadSettings(): AgentSettings {
@@ -43,10 +46,12 @@ function loadSettings(): AgentSettings {
     const raw = localStorage.getItem(SETTINGS_KEY)
     if (!raw) return DEFAULT_SETTINGS
     const parsed = JSON.parse(raw) as Partial<AgentSettings>
+    const savedModel = typeof parsed.model === 'string' ? parsed.model.trim() : ''
     return {
       baseUrl: typeof parsed.baseUrl === 'string' && parsed.baseUrl.trim() ? parsed.baseUrl.trim() : DEFAULT_SETTINGS.baseUrl,
-      model: typeof parsed.model === 'string' && parsed.model.trim() ? parsed.model.trim() : DEFAULT_SETTINGS.model,
-      apiKey: typeof parsed.apiKey === 'string' ? parsed.apiKey : '',
+      // Model bawaan lama (DeepSeek) dimigrasikan ke GLM yang lebih ringan; model kustom lain tidak diubah.
+      model: savedModel && savedModel !== LEGACY_DEFAULT_MODEL ? savedModel : DEFAULT_SETTINGS.model,
+      apiKey: typeof parsed.apiKey === 'string' ? parsed.apiKey.trim() : '',
     }
   } catch { return DEFAULT_SETTINGS }
 }
@@ -197,16 +202,47 @@ function buildContext(state: HouseholdState): string {
   ].join('\n')
 }
 
-async function askLLM(settings: AgentSettings, state: HouseholdState, history: ChatMessage[], question: string): Promise<string> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 45000)
+class LlmHttpError extends Error {
+  status: number
+  detail: string
+  constructor(status: number, detail: string) {
+    super(`HTTP ${status}`)
+    this.status = status
+    this.detail = detail
+  }
+}
+
+function extractErrorDetail(raw: string): string {
+  const text = raw.trim()
+  if (!text) return ''
   try {
-    const response = await fetch(`${settings.baseUrl.replace(/\/+$/, '')}/chat/completions`, {
+    const parsed = JSON.parse(text) as { error?: { message?: string } | string; message?: string; detail?: string }
+    const found = (typeof parsed.error === 'string' ? parsed.error : parsed.error?.message) ?? parsed.message ?? parsed.detail ?? ''
+    if (found) return found.length > 220 ? `${found.slice(0, 220)}…` : found
+  } catch { /* Bukan JSON — pakai potongan teks apa adanya di bawah. */ }
+  return text.length > 220 ? `${text.slice(0, 220)}…` : text
+}
+
+function llmErrorMessage(status: number, detail: string): string {
+  const head = `Mode AI menjawab error ${status}${detail ? `: ${detail}` : ''}.`
+  if (status === 401 || status === 403) return `${head}\n\nPeriksa lagi API key di Pengaturan Asisten — kemungkinan key-nya salah, kosong, atau sudah tidak berlaku.`
+  if (status === 404) return `${head}\n\nPeriksa lagi Base URL dan nama model di Pengaturan Asisten — endpoint atau modelnya tidak ditemukan.`
+  if (status === 429) return `${head}\n\nBatas pemakaian gratis endpoint sedang tercapai. Tunggu sebentar, lalu coba lagi.`
+  return `${head}\n\nPeriksa lagi Base URL, nama model, dan API key di Pengaturan Asisten, lalu coba lagi.`
+}
+
+async function askLLM(settings: AgentSettings, state: HouseholdState, history: ChatMessage[], question: string, onToken: (text: string) => void): Promise<string> {
+  const baseUrl = settings.baseUrl.trim().replace(/\/+$/, '')
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 150000)
+  try {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey.trim()}` },
       body: JSON.stringify({
-        model: settings.model,
+        model: settings.model.trim(),
+        stream: true,
         messages: [
           {
             role: 'system',
@@ -217,9 +253,47 @@ async function askLLM(settings: AgentSettings, state: HouseholdState, history: C
         ],
       }),
     })
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    const data = await response.json() as { choices?: { message?: { content?: string } }[] }
-    const text = data.choices?.[0]?.message?.content?.trim()
+    if (!response.ok) {
+      const detail = extractErrorDetail(await response.text().catch(() => ''))
+      throw new LlmHttpError(response.status, detail)
+    }
+    const reader = response.body?.getReader()
+    if (!reader) {
+      // Endpoint tidak mendukung streaming — baca jawaban JSON utuh seperti biasa.
+      const data = await response.json() as { choices?: { message?: { content?: string } }[] }
+      const text = data.choices?.[0]?.message?.content?.trim()
+      if (!text) throw new Error('Jawaban kosong')
+      onToken(text)
+      return text
+    }
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let full = ''
+    let done = false
+    const consumeLine = (line: string) => {
+      const trimmed = line.trim()
+      if (!trimmed.startsWith('data:')) return
+      const payload = trimmed.slice(5).trim()
+      if (payload === '[DONE]') { done = true; return }
+      try {
+        const parsed = JSON.parse(payload) as { choices?: { delta?: { content?: string }; message?: { content?: string } }[] }
+        const chunk = parsed.choices?.[0]?.delta?.content ?? parsed.choices?.[0]?.message?.content ?? ''
+        if (chunk) { full += chunk; onToken(full) }
+      } catch { /* Potongan SSE tidak lengkap/invalid — lewati dengan aman. */ }
+    }
+    while (!done) {
+      const { value, done: streamDone } = await reader.read()
+      if (streamDone) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+      for (const line of lines) {
+        consumeLine(line)
+        if (done) break
+      }
+    }
+    if (!done && buffer.trim()) consumeLine(buffer)
+    const text = full.trim()
     if (!text) throw new Error('Jawaban kosong')
     return text
   } finally {
@@ -227,10 +301,9 @@ async function askLLM(settings: AgentSettings, state: HouseholdState, history: C
   }
 }
 
-export function AgentAssistant() {
+export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const store = useHousehold()
   const { nameForPerson } = useAccount()
-  const [open, setOpen] = useState(false)
   const [view, setView] = useState<'chat' | 'settings'>('chat')
   const [messages, setMessages] = useState<ChatMessage[]>(loadMessages)
   const [input, setInput] = useState('')
@@ -239,6 +312,9 @@ export function AgentAssistant() {
   const [baseUrl, setBaseUrl] = useState(settings.baseUrl)
   const [model, setModel] = useState(settings.model)
   const [apiKey, setApiKey] = useState(settings.apiKey)
+  const [streamText, setStreamText] = useState('')
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState('')
   const dialogRef = useRef<HTMLDialogElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const titleId = 'agent-dialog-title'
@@ -257,14 +333,15 @@ export function AgentAssistant() {
   useEffect(() => {
     const list = listRef.current
     if (list) list.scrollTop = list.scrollHeight
-  }, [messages, sending, open, view])
+  }, [messages, sending, open, view, streamText])
 
-  const close = () => { setOpen(false); setView('chat') }
+  const close = () => { onOpenChange(false); setView('chat') }
 
   const openSettings = () => {
     setBaseUrl(settings.baseUrl)
     setModel(settings.model)
     setApiKey(settings.apiKey)
+    setTestResult('')
     setView('settings')
   }
 
@@ -285,19 +362,51 @@ export function AgentAssistant() {
       return
     }
     setSending(true)
+    setStreamText('')
     try {
-      const reply = await askLLM(settings, store.state, history, question)
+      const reply = await askLLM(settings, store.state, history, question, partial => setStreamText(partial))
       setMessages([...history, { id: makeId(), role: 'assistant', text: reply }])
-    } catch {
-      setMessages([...history, { id: makeId(), role: 'assistant', text: FALLBACK_ERROR }])
+    } catch (error) {
+      const isAbort = typeof error === 'object' && error !== null && (error as { name?: string }).name === 'AbortError'
+      const text = error instanceof LlmHttpError
+        ? llmErrorMessage(error.status, error.detail)
+        : isAbort ? FALLBACK_TIMEOUT : FALLBACK_ERROR
+      setMessages([...history, { id: makeId(), role: 'assistant', text }])
     } finally {
       setSending(false)
+      setStreamText('')
     }
   }
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
     void send(input)
+  }
+
+  const testConnection = async () => {
+    const url = baseUrl.trim().replace(/\/+$/, '')
+    const key = apiKey.trim()
+    if (!url || !model.trim() || !key || testing) return
+    setTesting(true)
+    setTestResult('')
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 30000)
+    try {
+      const response = await fetch(`${url}/models`, { headers: { Authorization: `Bearer ${key}` }, signal: controller.signal })
+      if (!response.ok) {
+        const detail = extractErrorDetail(await response.text().catch(() => ''))
+        setTestResult(`Koneksi gagal — error ${response.status}${detail ? `: ${detail}` : ''}.`)
+        return
+      }
+      const data = await response.json() as { data?: unknown[] }
+      const count = Array.isArray(data.data) ? data.data.length : 0
+      setTestResult(count ? `Koneksi berhasil — ${count} model tersedia.` : 'Koneksi berhasil.')
+    } catch {
+      setTestResult('Koneksi gagal — endpoint tidak terjangkau. Periksa Base URL dan koneksi internet.')
+    } finally {
+      clearTimeout(timer)
+      setTesting(false)
+    }
   }
 
   const saveSettings = (event: FormEvent) => {
@@ -325,7 +434,6 @@ export function AgentAssistant() {
   }
 
   return <>
-    {!open && <button type="button" className="agent-fab" onClick={() => setOpen(true)} aria-label="Buka Asisten Myhome"><Sparkles size={21} /><span>Asisten</span></button>}
     {open && <dialog ref={dialogRef} className="expense-dialog workspace-dialog agent-dialog" aria-labelledby={titleId} onCancel={close} onClick={event => { if (event.target === event.currentTarget) close() }}>
       <div className="dialog-content agent-content">
         <span className="sheet-handle" aria-hidden="true" />
@@ -350,12 +458,16 @@ export function AgentAssistant() {
           </div>
           <div className="form-field">
             <label htmlFor="agent-model">Nama model</label>
-            <input id="agent-model" type="text" autoComplete="off" placeholder="deepseek-ai/deepseek-v4.1-flash" value={model} onChange={event => setModel(event.target.value)} />
+            <input id="agent-model" type="text" autoComplete="off" placeholder="z-ai/glm-5.3-flash" value={model} onChange={event => setModel(event.target.value)} />
           </div>
           <div className="form-field">
             <label htmlFor="agent-api-key">API key</label>
             <input id="agent-api-key" type="password" autoComplete="off" placeholder="Tempel API key penyedia model" value={apiKey} onChange={event => setApiKey(event.target.value)} />
             <small>API key hanya tersimpan di perangkat ini (localStorage) — tidak dikirim ke Supabase atau server Myhome. Contoh penyedia: NVIDIA (build.nvidia.com) dengan Base URL & model bawaan di atas.</small>
+          </div>
+          <div>
+            <button type="button" className="secondary-button" disabled={testing || !baseUrl.trim() || !model.trim() || !apiKey.trim()} onClick={() => void testConnection()}>{testing ? 'Menghubungi endpoint…' : 'Tes koneksi'}</button>
+            {testResult && <p className="form-hint" role="status" style={{ marginTop: '8px' }}>{testResult}</p>}
           </div>
           <p className="form-hint">Tanpa API key, Asisten tetap bisa menjawab pertanyaan dasar dari data rumah: ringkasan hari ini, tagihan, cicilan & piutang, saldo dompet, agenda, impian, dan belanja.</p>
           <button type="submit" className="primary-button" style={{ width: '100%' }}>Simpan pengaturan</button>
@@ -363,7 +475,8 @@ export function AgentAssistant() {
         </form> : <>
           <div className="agent-messages" ref={listRef} aria-live="polite">
             {messages.map(message => <div key={message.id} className={`agent-msg ${message.role}`}>{message.text}</div>)}
-            {sending && <div className="agent-msg assistant agent-typing">Sedang menyusun jawaban…</div>}
+            {streamText && <div className="agent-msg assistant">{streamText}</div>}
+            {sending && !streamText && <div className="agent-msg assistant agent-typing">Sedang menyusun jawaban…</div>}
           </div>
           <div className="agent-chips" role="group" aria-label="Pertanyaan cepat">
             {QUICK_QUESTIONS.map(question => <button key={question} type="button" className="agent-chip" disabled={sending} onClick={() => void send(question)}>{question}</button>)}

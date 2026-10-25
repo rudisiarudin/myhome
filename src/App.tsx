@@ -354,6 +354,7 @@ export default function App() {
   const [spinning, setSpinning] = useState<'food' | 'date' | null>(null)
   const spinTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [assistantOpen, setAssistantOpen] = useState(false)
   const todaySpent = spentIn(state.transactions, TODAY, 'household')
   const dailyBudget = state.budget.daily
   const remaining = dailyBudget - todaySpent
@@ -439,6 +440,7 @@ export default function App() {
         </a>
         <div className="header-actions">
           {!store.isPreview && <button className="icon-button sync-refresh" aria-label="Muat ulang data" title="Refresh data" disabled={store.pending || store.refreshing} aria-busy={store.refreshing} onClick={() => void store.refresh()}><RefreshCw size={19} aria-hidden="true" /></button>}
+          <button className="icon-button" aria-label="Buka Asisten" title="Asisten" onClick={() => setAssistantOpen(true)}><Sparkles size={20} aria-hidden="true" /></button>
           <button className="theme-toggle icon-button" aria-label={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} title={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} aria-pressed={theme === 'dark'} onClick={() => setTheme(value => value === 'light' ? 'dark' : 'light')}>
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
@@ -524,7 +526,7 @@ export default function App() {
       <nav className="bottom-nav" aria-label="Navigasi utama">{tabs.map(tab => <button key={tab.key} className={`nav-button ${activeTab === tab.key ? 'active' : ''}`} aria-current={activeTab === tab.key ? 'page' : undefined} onClick={() => navigate(tab.key)}><tab.icon size={21} strokeWidth={activeTab === tab.key ? 2.6 : 1.9} /><span>{tab.label}</span><i aria-hidden="true" /></button>)}</nav>
 
       <HouseholdDialogs role={currentProfile.role} />
-      <AgentAssistant />
+      <AgentAssistant open={assistantOpen} onOpenChange={setAssistantOpen} />
       <div className={`notice ${notice ? 'notice-visible' : ''}`} role="status">{notice}</div>
     </main>
   </div>
