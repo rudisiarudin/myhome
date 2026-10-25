@@ -296,6 +296,7 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
 
 @media (max-width: 759px) {
   :root { --app-header-height: 72px; --app-shell-top-inset: 0px; }
+  .header-actions { gap: 8px; }
   .app-background { padding: 0; background: #fff; }
   .app-shell { min-height: 100dvh; max-width: 500px; border-radius: 0; padding: calc(var(--app-header-height) + env(safe-area-inset-top, 0px) + 16px) 20px calc(130px + env(safe-area-inset-bottom, 0px)); }
   .app-header { width: 100%; max-width: 500px; padding-left: 20px; padding-right: 20px; }
@@ -392,7 +393,7 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
 }
 
 @media (max-width: 359px) {
-  .header-actions { gap: 7px; }
+  .header-actions { gap: 5px; }
   .header-actions .role-switch button { min-width: 46px; }
   .wordmark { font-size: 19px; gap: 5px; }
   .app-shell { padding-left: 18px; padding-right: 18px; }
@@ -551,10 +552,7 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
   .sync-refresh[aria-busy="true"] svg { animation: none; }
 }
 
-/* Asisten Myhome: tombol mengambang + panel chat. */
-.agent-fab { position: fixed; right: max(24px, calc(50% - 520px + 38px)); bottom: 132px; z-index: 45; display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 12px 18px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 12.5px; font-weight: 600; box-shadow: 0 10px 28px #2028342b; transition: background .18s ease, transform .18s ease; }
-.agent-fab:hover { background: #474745; }
-.agent-fab:active { transform: scale(.97); }
+/* Asisten Myhome: panel chat, dibuka dari ikon Sparkles di header. */
 .agent-dialog { height: min(700px, calc(100dvh - 40px)); overflow: hidden; }
 .agent-content { display: flex; flex-direction: column; height: 100%; }
 .agent-heading { flex-shrink: 0; }
@@ -577,12 +575,9 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
 .agent-settings { overflow-y: auto; min-height: 0; padding-right: 2px; }
 .agent-settings .danger-text { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; }
 @media (max-width: 759px) {
-  .agent-fab { right: 16px; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); min-height: 50px; padding: 11px 16px; }
   .agent-dialog { height: calc(100dvh - 20px); }
   .agent-composer input { font-size: 16px; }
 }
-[data-theme="dark"] .agent-fab { background: #e5e5ee; color: #24242b; }
-[data-theme="dark"] .agent-fab:hover { background: #fff; }
 [data-theme="dark"] .agent-msg.user { background: #e5e5ee; color: #24242b; }
 [data-theme="dark"] .agent-title-icon { color: #e9e9ee; }
 [data-theme="dark"] .agent-chip:hover:not(:disabled) { background: #2d2f3a; }
