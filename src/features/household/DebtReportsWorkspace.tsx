@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2, Download } from 'lucide-react'
+import { Plus, Trash2, Download, Wallet, Check, X } from 'lucide-react'
 import { useHousehold } from './context'
 import { money, makeId, walletBalance } from './model'
 import type { DebtLoan } from './model'
@@ -21,6 +21,38 @@ export function DebtReportsWorkspace() {
   const [monthlyPayment, setMonthlyPayment] = useState('')
   const [dueDay, setDueDay] = useState('10')
   const [notes, setNotes] = useState('')
+
+  // Form inline pencatatan pembayaran/pengembalian pada kartu utang/piutang
+  const [payingId, setPayingId] = useState<string | null>(null)
+  const [payAmount, setPayAmount] = useState('')
+  const [payError, setPayError] = useState('')
+
+  const openPayForm = (d: DebtLoan) => {
+    setPayingId(d.id)
+    setPayAmount(String(d.monthlyPayment ? Math.min(d.monthlyPayment, d.remainingAmount) : d.remainingAmount))
+    setPayError('')
+  }
+
+  const closePayForm = () => {
+    setPayingId(null)
+    setPayAmount('')
+    setPayError('')
+  }
+
+  const handleRecordPayment = (e: React.FormEvent, d: DebtLoan) => {
+    e.preventDefault()
+    const amount = Number(payAmount)
+    if (!payAmount || Number.isNaN(amount) || amount <= 0) {
+      setPayError('Nominal harus lebih dari 0.')
+      return
+    }
+    if (amount > d.remainingAmount) {
+      setPayError(`Nominal tidak boleh melebihi sisa saat ini (${money(d.remainingAmount)}).`)
+      return
+    }
+    void store.saveDebt({ ...d, remainingAmount: d.remainingAmount - amount })
+    closePayForm()
+  }
 
   // Perhitungan Neraca Kekayaan Bersih (Net Worth)
   const totalWallets = state.wallets.reduce((sum, w) => sum + walletBalance(w, state.transactions), 0)
@@ -253,6 +285,45 @@ export function DebtReportsWorkspace() {
                     <Trash2 size={15} />
                   </button>
                 </div>
+                {d.remainingAmount > 0 && payingId !== d.id && (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    style={{ marginTop: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    onClick={() => openPayForm(d)}
+                  >
+                    <Wallet size={15} /> {isPiutang ? 'Catat Pengembalian' : 'Catat Pembayaran'}
+                  </button>
+                )}
+                {d.remainingAmount > 0 && payingId === d.id && (
+                  <form onSubmit={e => handleRecordPayment(e, d)} className="workspace-form" style={{ marginTop: '14px' }}>
+                    <div className="form-field">
+                      <label htmlFor={`debt-pay-${d.id}`}>{isPiutang ? 'Nominal Pengembalian (Rp)' : 'Nominal Pembayaran (Rp)'}</label>
+                      <input
+                        id={`debt-pay-${d.id}`}
+                        type="number"
+                        min="1"
+                        max={d.remainingAmount}
+                        required
+                        autoFocus
+                        value={payAmount}
+                        onChange={e => setPayAmount(e.target.value)}
+                      />
+                    </div>
+                    <p className="small muted" style={{ margin: '0 0 12px' }}>
+                      Sisa saat ini {money(d.remainingAmount)}. Setelah dicatat, sisa menjadi {money(Math.max(d.remainingAmount - (Number(payAmount) || 0), 0))}.
+                    </p>
+                    {payError && <p className="form-error" role="alert">{payError}</p>}
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button type="submit" className="primary-button" disabled={store.pending} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <Check size={15} /> Simpan
+                      </button>
+                      <button type="button" className="secondary-button" onClick={closePayForm} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <X size={15} /> Batal
+                      </button>
+                    </div>
+                  </form>
+                )}
               </article>
             )
           }) : <p className="muted small">Belum ada cicilan atau piutang yang dicatat.</p>}
