@@ -151,6 +151,12 @@
 .empty-state h3 { font-size: 15px; font-weight: 600; margin-bottom: 7px; color: var(--workspace-text); }
 .empty-state p { max-width: 330px; margin: 0 auto; }
 
+/* Form utang/piutang versi ringkas di dalam modal: jarak antar kolom lebih rapat, isian lebih ramping. */
+.debt-form-compact .form-field { margin-bottom: 13px; gap: 6px; }
+.debt-form-compact .form-field > label { font-size: 11px; }
+.debt-form-compact .form-field > input, .debt-form-compact .form-field > select { min-height: 44px; padding-top: 10px; padding-bottom: 10px; }
+.debt-form-compact .form-columns { gap: 10px; }
+
 [data-theme="dark"] .danger-text, [data-theme="dark"] .over-limit { color: #ffb2b2; }
 [data-theme="dark"] .danger-button { color: #402329; background: #ffb2b2; }
 [data-theme="dark"] .danger-button:hover { background: #ffcece; }
