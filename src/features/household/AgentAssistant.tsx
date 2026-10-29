@@ -99,7 +99,7 @@ function debtsAnswer(state: HouseholdState, question: string): string {
   const sections: string[] = []
   const describe = (debt: HouseholdState['debts'][number]) => {
     const percent = debt.totalAmount > 0 ? Math.min(100, Math.max(0, Math.round((debt.totalAmount - debt.remainingAmount) / debt.totalAmount * 100))) : 100
-    return `• ${debt.title} (${debt.lenderOrBorrower}) — sisa ${money(debt.remainingAmount)} dari ${money(debt.totalAmount)} (${percent}% lunas)${debt.monthlyPayment ? ` · cicilan ${money(debt.monthlyPayment)}/bulan` : ''}${debt.dueDay ? ` · tiap tanggal ${debt.dueDay}` : ''}${debt.creditCardFunded ? ' · dibiayai kartu kredit (di luar kekayaan bersih)' : ''}`
+    return `• ${debt.title} (${debt.lenderOrBorrower}) — sisa ${money(debt.remainingAmount)} dari ${money(debt.totalAmount)} (${percent}% lunas)${debt.monthlyPayment ? ` · cicilan ${money(debt.monthlyPayment)}/bulan` : ''}${debt.dueDay ? ` · tiap tanggal ${debt.dueDay}` : ''}`
   }
   if (wantsUtang || !wantsPiutang) {
     const debts = state.debts.filter(debt => debt.type !== 'piutang')
@@ -108,10 +108,8 @@ function debtsAnswer(state: HouseholdState, question: string): string {
   if (wantsPiutang || !wantsUtang) {
     const receivables = state.debts.filter(debt => debt.type === 'piutang')
     if (receivables.length) {
-      const counted = receivables.filter(debt => !debt.creditCardFunded)
-      const kartuKredit = receivables.filter(debt => debt.creditCardFunded)
-      let section = `Piutang (uang yang dipinjam orang lain):\n${receivables.map(describe).join('\n')}\nTotal piutang belum kembali: ${money(counted.reduce((sum, debt) => sum + debt.remainingAmount, 0))}`
-      if (kartuKredit.length) section += `\nPiutang kartu kredit (tidak dihitung dalam kekayaan bersih): ${money(kartuKredit.reduce((sum, debt) => sum + debt.remainingAmount, 0))}`
+      const total = receivables.reduce((sum, debt) => sum + debt.remainingAmount, 0)
+      const section = `Piutang (uang yang dipinjam orang lain):\n${receivables.map(describe).join('\n')}\nTotal piutang belum kembali: ${money(total)}\nPiutang tidak dihitung dalam kekayaan bersih — kekayaan bersih hanya dari dompet + tabungan.`
       sections.push(section)
     }
   }
