@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Trash2, Download, Wallet, Check, X, CreditCard, CalendarDays, Clock } from 'lucide-react'
+import { Plus, Trash2, Download, Wallet, Check, X, CreditCard, CalendarDays, Clock, Pencil } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useHousehold } from './context'
 import { money, makeId, walletBalance, formatDate } from './model'
@@ -29,6 +29,9 @@ export function DebtReportsWorkspace() {
 
   // Formulir tambah kini tampil sebagai modal, bukan formulir panjang menempel di halaman.
   const [formOpen, setFormOpen] = useState(false)
+  // Mode edit: id catatan yang sedang diubah lewat modal yang sama (null = mode tambah baru).
+  // saveDebt di store/provider bersifat upsert berdasarkan id, jadi id yang sama = perbarui baris lama.
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   // Kartu utang pasangan: cermin utang dari piutang yang dibiayai kartu kredit/pinjaman,
   // agar Net Worth tidak tergelembung oleh piutang yang bukan uang tunai kita.
@@ -74,6 +77,48 @@ export function DebtReportsWorkspace() {
     closeMirrorForm()
   }
 
+  const resetForm = () => {
+    setTitle('')
+    setType('kpr')
+    setLender('')
+    setTotalAmount('')
+    setRemainingAmount('')
+    setMonthlyPayment('')
+    setDueDay('10')
+    setTenorMonths('')
+    setRemainingMonths('')
+    setNotes('')
+    setMirrorPair(false)
+    setMirrorLenderName('')
+    setEditingId(null)
+  }
+
+  const openAddForm = () => {
+    resetForm()
+    setFormOpen(true)
+  }
+
+  const openEditForm = (d: DebtLoan) => {
+    resetForm()
+    setEditingId(d.id)
+    setTitle(d.title)
+    setType(d.type)
+    setLender(d.lenderOrBorrower)
+    setTotalAmount(String(d.totalAmount))
+    setRemainingAmount(String(d.remainingAmount))
+    setMonthlyPayment(d.monthlyPayment != null ? String(d.monthlyPayment) : '')
+    setDueDay(d.dueDay != null ? String(d.dueDay) : '')
+    setTenorMonths(d.tenorMonths != null ? String(d.tenorMonths) : '')
+    setRemainingMonths(d.remainingMonths != null ? String(d.remainingMonths) : '')
+    setNotes(d.notes ?? '')
+    setFormOpen(true)
+  }
+
+  const closeForm = () => {
+    setFormOpen(false)
+    resetForm()
+  }
+
   // Perhitungan Neraca Kekayaan Bersih (Net Worth)
   const totalWallets = state.wallets.reduce((sum, w) => sum + walletBalance(w, state.transactions), 0)
   const totalSavings = state.goals.reduce((sum, g) => sum + g.openingAmount, 0)
@@ -85,7 +130,7 @@ export function DebtReportsWorkspace() {
   const totalDebts = state.debts.filter(d => d.type !== 'piutang').reduce((sum, d) => sum + d.remainingAmount, 0)
   const netWorth = totalAssets - totalDebts
 
-  const handleAddDebt = async (e: React.FormEvent) => {
+  const handleSubmitDebt = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
     // Fleksibel: cukup isi salah satu dari Total / Sisa — yang kosong mengikuti angka yang diisi,
@@ -97,7 +142,8 @@ export function DebtReportsWorkspace() {
     // Sisa tenor kosong = sama dengan tenor (cicilan baru); tidak boleh melebihi tenornya.
     const sisaTenor = tenor ? Math.min(remainingMonths ? Number(remainingMonths) : tenor, tenor) : undefined
     const item: DebtLoan = {
-      id: makeId(),
+      // Mode edit memakai id lama (baris diperbarui, riwayat pembayaran tetap menempel); tambah = id baru.
+      id: editingId ?? makeId(),
       title: title.trim(),
       type,
       lenderOrBorrower: lender.trim() || 'Bank / Lembaga',
@@ -111,20 +157,10 @@ export function DebtReportsWorkspace() {
     }
     const message = await store.saveDebt(item)
     if (message) return // Simpan gagal: jangan buat kartu pasangan, jangan kosongkan form
-    if (type === 'piutang' && mirrorPair) {
+    if (!editingId && type === 'piutang' && mirrorPair) {
       await store.saveDebt(buildMirrorDebt(item, mirrorLenderName))
     }
-    setTitle('')
-    setLender('')
-    setTotalAmount('')
-    setRemainingAmount('')
-    setMonthlyPayment('')
-    setTenorMonths('')
-    setRemainingMonths('')
-    setNotes('')
-    setMirrorPair(false)
-    setMirrorLenderName('')
-    setFormOpen(false)
+    closeForm()
   }
 
   // Ekspor CSV / Excel
@@ -190,14 +226,14 @@ export function DebtReportsWorkspace() {
         <p className="muted small" style={{ marginTop: '-8px', marginBottom: '14px' }}>
           Pantau sisa cicilan yang harus dibayar, serta uang yang sedang dipinjam orang lain.
         </p>
-        <button type="button" className="secondary-button" onClick={() => setFormOpen(true)} style={{ marginBottom: '24px' }}>
+        <button type="button" className="secondary-button" onClick={openAddForm} style={{ marginBottom: '24px' }}>
           <Plus size={15} /> Tambah Catatan Utang / Piutang
         </button>
 
-        {/* Form Tambah Cicilan/KPR/Piutang — tampil sebagai modal */}
+        {/* Form Tambah/Edit Cicilan/KPR/Piutang — tampil sebagai modal */}
         {formOpen && (
-          <Modal title="Tambah Utang / Piutang" subtitle="Satu catatan untuk satu cicilan atau pinjaman." onClose={() => setFormOpen(false)}>
-            <form onSubmit={handleAddDebt} className="workspace-form house-entry-form debt-form-compact">
+          <Modal title={editingId ? 'Edit Utang / Piutang' : 'Tambah Utang / Piutang'} subtitle={editingId ? 'Perbarui data catatan ini.' : 'Satu catatan untuk satu cicilan atau pinjaman.'} onClose={closeForm}>
+            <form onSubmit={handleSubmitDebt} className="workspace-form house-entry-form debt-form-compact">
           <div className="form-field">
             <label htmlFor="debt-title">Nama Catatan</label>
             <input
@@ -289,7 +325,7 @@ export function DebtReportsWorkspace() {
             />
           </div>
 
-          {type === 'piutang' && (
+          {type === 'piutang' && !editingId && (
             <div className="form-field">
               <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontWeight: 500, cursor: 'pointer' }}>
                 <input
@@ -319,7 +355,7 @@ export function DebtReportsWorkspace() {
           )}
 
           <button type="submit" className="primary-button" style={{ width: '100%' }}>
-            <Plus size={16} /> Simpan Pinjaman / KPR
+            {editingId ? <><Pencil size={16} /> Simpan Perubahan</> : <><Plus size={16} /> Simpan Pinjaman / KPR</>}
           </button>
             </form>
           </Modal>
@@ -339,15 +375,26 @@ export function DebtReportsWorkspace() {
                   <span className="badge" style={{ fontSize: '10px', textTransform: 'uppercase', display: 'inline-block', color: isPiutang ? '#22c55e' : undefined, borderColor: isPiutang ? 'rgba(34,197,94,0.3)' : undefined }}>
                     {isPiutang ? 'PIUTANG (ASET KITA)' : d.type.toUpperCase()} · {d.lenderOrBorrower}
                   </span>
-                  <button
-                    type="button"
-                    className="icon-button"
-                    aria-label={`Hapus catatan ${d.title}`}
-                    onClick={() => store.setEditor({ type: 'confirm', title: `Hapus catatan "${d.title}"?`, description: 'Catatan ini akan dihapus permanen beserta seluruh riwayat pembayaran/pengembaliannya. Tindakan ini tidak bisa dibatalkan.', confirm: () => store.deleteDebt(d.id) })}
-                    style={{ color: 'var(--muted)', width: '36px', height: '36px', margin: '-6px -6px 0 0' }}
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  <div style={{ display: 'flex', gap: '2px', margin: '-6px -6px 0 0', flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      className="icon-button"
+                      aria-label={`Edit catatan ${d.title}`}
+                      onClick={() => openEditForm(d)}
+                      style={{ color: 'var(--muted)', width: '36px', height: '36px' }}
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-button"
+                      aria-label={`Hapus catatan ${d.title}`}
+                      onClick={() => store.setEditor({ type: 'confirm', title: `Hapus catatan "${d.title}"?`, description: 'Catatan ini akan dihapus permanen beserta seluruh riwayat pembayaran/pengembaliannya. Tindakan ini tidak bisa dibatalkan.', confirm: () => store.deleteDebt(d.id) })}
+                      style={{ color: 'var(--muted)', width: '36px', height: '36px' }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
                 <h3 style={{ fontSize: '16px', fontWeight: 650, margin: '6px 0 2px' }}>{d.title}</h3>
                 <p className="small muted" style={{ margin: 0 }}>{isPiutang ? 'Belum kembali' : 'Sisa utang'}</p>
