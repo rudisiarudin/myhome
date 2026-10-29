@@ -4,7 +4,7 @@ import { CalendarDays, Check, ChevronRight, Copy, Heart, Home, House, Moon, Plus
 import { AppLogoIcon } from './components/AppLogo'
 import type { FoodIdea, ShoppingItem, ScheduleEvent } from './types'
 import { useHousehold } from './features/household/context'
-import { formatDate, memoryCategories, spentIn, TODAY, makeId } from './features/household/model'
+import { formatDate, memoryCategories, spentIn, TODAY, makeId, walletBalance } from './features/household/model'
 import type { JournalMemory } from './features/household/model'
 import { useAccount } from './features/account/context'
 import { AccountMenu, MemberAvatars as Avatars } from './features/account/ProfileAvatar'
@@ -359,6 +359,13 @@ export default function App() {
   const todaySpent = spentIn(state.transactions, TODAY, 'household')
   const dailyBudget = state.budget.daily
   const remaining = dailyBudget - todaySpent
+  const totalWallets = state.wallets.reduce((sum, w) => sum + walletBalance(w, state.transactions), 0)
+  const totalSavings = state.goals.reduce((sum, g) => sum + g.openingAmount, 0)
+  const piutangList = state.debts.filter(d => d.type === 'piutang')
+  const totalPiutang = piutangList.reduce((sum, d) => sum + d.remainingAmount, 0)
+  const totalPiutangAwal = piutangList.reduce((sum, d) => sum + d.totalAmount, 0)
+  const totalUtang = state.debts.filter(d => d.type !== 'piutang').reduce((sum, d) => sum + d.remainingAmount, 0)
+  const netWorth = totalWallets + totalSavings + totalPiutang - totalUtang
   const pendingShopping = shoppingList.filter(item => !item.isBought)
 
   useEffect(() => {
@@ -421,6 +428,7 @@ export default function App() {
     {allowDelete ? <button className="icon-button delete-button" aria-label={`Hapus ${item.title}`} onClick={() => deleteShopping(item.id)}><Trash2 size={17} /></button> : <span className="item-dot" aria-hidden="true" />}
   </div>)}</div>
 
+  const renderNavButton = (tab: { key: Tab; label: string; icon: typeof Home }) => <button key={tab.key} className={`nav-button ${activeTab === tab.key ? 'active' : ''}`} aria-current={activeTab === tab.key ? 'page' : undefined} onClick={() => navigate(tab.key)}><tab.icon size={21} strokeWidth={activeTab === tab.key ? 2.6 : 1.9} /><span>{tab.label}</span><i aria-hidden="true" /></button>
   const tabs: { key: Tab; label: string; icon: typeof Home }[] = [
     { key: 'today', label: 'Hari ini', icon: Home },
     { key: 'budget', label: 'Keuangan', icon: Wallet },
@@ -452,21 +460,36 @@ export default function App() {
       {store.refreshError && <div className="connection-warning" role="alert">{store.refreshError}<p>Muat ulang sebelum membuat perubahan berikutnya.</p></div>}
 
       {activeTab === 'today' ? <>
-        <section className="greeting-card">
+        <div className="today-head">
+          <h1>Hari ini,<br /><em>cerita kita</em> berdua.</h1>
+          <p>{formatDate(TODAY, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · Hai, {shortName(currentProfile.name)}! · {householdShortNames(members)}</p>
+        </div>
+
+        <section className="hero-card" aria-label="Kekayaan bersih">
           <Waves />
-          <div className="greeting-copy"><p>Hai, {shortName(currentProfile.name)}!</p><h1>Rumah kecil,<br />cerita kita.</h1><p className="greeting-date">{formatDate(TODAY, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
-          <Avatars />
-          <span className="greeting-signature"><Heart size={15} /> {householdShortNames(members)}</span>
+          <div className="row-between"><span className="hero-label">Kekayaan Bersih</span><button className="hero-link" onClick={() => { setBudgetSubTab('debts'); navigate('budget') }}>KPR &amp; Neraca<ChevronRight size={14} /></button></div>
+          <div className="hero-total">{money(netWorth)}</div>
+          <p className="hero-sub">Dompet + tabungan + piutang, bersih dari semua utang</p>
+          <div className="hero-wallets">{state.wallets.map(w => <span key={w.id} className="hero-chip">{w.name} · {money(walletBalance(w, state.transactions))}</span>)}</div>
         </section>
+
+        <div className="today-grid">
+          <section className="mini-card mini-budget" aria-label="Anggaran harian">
+            <div className="row-between"><span>Sisa belanja hari ini</span><span className={`spend-status ${remaining < 0 ? 'over-budget' : ''}`}><span />{remaining < 0 ? 'Lewat anggaran' : 'Masih aman'}</span></div>
+            <div className="allowance-number">{money(remaining)}<span> / {money(dailyBudget)}</span></div>
+            <Progress value={todaySpent / dailyBudget * 100} label="Anggaran harian terpakai" />
+            <div className="allowance-footer"><p className="small muted">Terpakai {money(todaySpent)} hari ini</p><button className="record-expense" onClick={() => setEditor({ type: 'transaction', kind: 'expense' })} aria-label="Catat pengeluaran"><Plus size={16} />Catat</button></div>
+          </section>
+          <section className="mini-card mini-piutang" aria-label="Piutang beredar">
+            <div className="row-between"><span>Piutang beredar</span><span className="spend-status"><span />{piutangList.length} catatan</span></div>
+            <div className="allowance-number">{money(totalPiutang)}<span> sisa</span></div>
+            <Progress value={totalPiutangAwal ? (totalPiutangAwal - totalPiutang) / totalPiutangAwal * 100 : 0} label="Piutang sudah kembali" />
+            <div className="allowance-footer"><p className="small muted">Dari total {money(totalPiutangAwal)}</p><button className="record-expense" onClick={() => { setBudgetSubTab('debts'); navigate('budget') }}>Lihat</button></div>
+          </section>
+        </div>
 
         <div className="home-layout">
           <div className="home-primary">
-            <section className="allowance-summary" aria-label="Anggaran harian">
-              <div className="row-between"><span className="muted">Sisa belanja hari ini</span><span className={`spend-status ${remaining < 0 ? 'over-budget' : ''}`}><span />{remaining < 0 ? 'Lewat anggaran' : 'Masih aman'}</span></div>
-              <div className="allowance-number">{money(remaining)}<span> / {money(dailyBudget)}</span></div>
-              <Progress value={todaySpent / dailyBudget * 100} label="Anggaran harian terpakai" />
-              <div className="allowance-footer"><p className="small muted">Terpakai {money(todaySpent)} hari ini</p><button className="record-expense" onClick={() => setEditor({ type: 'transaction', kind: 'expense' })} aria-label="Catat pengeluaran"><Plus size={16} />Catat</button></div>
-            </section>
 
             <section className="home-shortcuts">
               <SectionHeading title="Untuk berdua" action="Lihat semua" onAction={() => openCouple('decision')} />
@@ -524,7 +547,7 @@ export default function App() {
       </div>}
 
       <footer className="demo-note">{store.isPreview ? 'Pratinjau dengan data contoh · Semua perubahan data hilang saat halaman dimuat ulang. Tidak ada koneksi bank atau database.' : 'Catatan rumah disimpan di Supabase. Pencatatan ini tidak terhubung ke bank dan tidak memindahkan uang sungguhan.'}</footer>
-      <nav className="bottom-nav" aria-label="Navigasi utama">{tabs.map(tab => <button key={tab.key} className={`nav-button ${activeTab === tab.key ? 'active' : ''}`} aria-current={activeTab === tab.key ? 'page' : undefined} onClick={() => navigate(tab.key)}><tab.icon size={21} strokeWidth={activeTab === tab.key ? 2.6 : 1.9} /><span>{tab.label}</span><i aria-hidden="true" /></button>)}</nav>
+      <nav className="bottom-nav" aria-label="Navigasi utama">{tabs.slice(0, 2).map(renderNavButton)}<button className="nav-plus" aria-label="Catat pengeluaran" onClick={() => setEditor({ type: 'transaction', kind: 'expense' })}><Plus size={24} /></button>{tabs.slice(2).map(renderNavButton)}</nav>
 
       <HouseholdDialogs role={currentProfile.role} />
       <AgentAssistant open={assistantOpen} onOpenChange={setAssistantOpen} />
