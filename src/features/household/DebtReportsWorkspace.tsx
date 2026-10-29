@@ -20,6 +20,8 @@ export function DebtReportsWorkspace() {
   const [remainingAmount, setRemainingAmount] = useState('')
   const [monthlyPayment, setMonthlyPayment] = useState('')
   const [dueDay, setDueDay] = useState('10')
+  const [tenorMonths, setTenorMonths] = useState('')
+  const [remainingMonths, setRemainingMonths] = useState('')
   const [notes, setNotes] = useState('')
 
   // Kartu utang pasangan: cermin utang dari piutang yang dibiayai kartu kredit/pinjaman,
@@ -44,6 +46,8 @@ export function DebtReportsWorkspace() {
       remainingAmount: source.remainingAmount,
       monthlyPayment: source.monthlyPayment,
       dueDay: source.dueDay,
+      tenorMonths: source.tenorMonths,
+      remainingMonths: source.remainingMonths,
       notes: baseNotes ? `${baseNotes}${/[.!?]$/.test(baseNotes) ? ' ' : '. '}${marker}` : marker
     }
   }
@@ -77,9 +81,15 @@ export function DebtReportsWorkspace() {
 
   const handleAddDebt = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim() || !totalAmount) return
-    const tot = Number(totalAmount)
+    if (!title.trim()) return
+    // Fleksibel: cukup isi salah satu dari Total / Sisa — yang kosong mengikuti angka yang diisi,
+    // supaya catatan yang dimulai dari sisa berjalan (mis. cicilan yang sudah jalan beberapa kali) tetap bisa dicatat.
+    const tot = Number(totalAmount) || Number(remainingAmount)
+    if (!tot) return
     const rem = remainingAmount ? Number(remainingAmount) : tot
+    const tenor = tenorMonths ? Number(tenorMonths) : undefined
+    // Sisa tenor kosong = sama dengan tenor (cicilan baru); tidak boleh melebihi tenornya.
+    const sisaTenor = tenor ? Math.min(remainingMonths ? Number(remainingMonths) : tenor, tenor) : undefined
     const item: DebtLoan = {
       id: makeId(),
       title: title.trim(),
@@ -89,6 +99,8 @@ export function DebtReportsWorkspace() {
       remainingAmount: rem,
       monthlyPayment: monthlyPayment ? Number(monthlyPayment) : undefined,
       dueDay: dueDay ? Number(dueDay) : undefined,
+      tenorMonths: tenor,
+      remainingMonths: sisaTenor,
       notes: notes.trim()
     }
     const message = await store.saveDebt(item)
@@ -101,6 +113,8 @@ export function DebtReportsWorkspace() {
     setTotalAmount('')
     setRemainingAmount('')
     setMonthlyPayment('')
+    setTenorMonths('')
+    setRemainingMonths('')
     setNotes('')
     setMirrorPair(false)
     setMirrorLenderName('')
@@ -210,7 +224,6 @@ export function DebtReportsWorkspace() {
               <input
                 id="debt-total"
                 type="number"
-                required
                 placeholder="Contoh: 5000000"
                 value={totalAmount}
                 onChange={e => setTotalAmount(e.target.value)}
@@ -227,6 +240,9 @@ export function DebtReportsWorkspace() {
               />
             </div>
           </div>
+          <p className="small muted" style={{ margin: '-6px 0 0' }}>
+            Cukup isi salah satu dari Total / Sisa — kolom yang kosong akan mengikuti angka yang diisi.
+          </p>
 
           <div className="form-columns">
             <div className="form-field">
@@ -253,11 +269,36 @@ export function DebtReportsWorkspace() {
             </div>
           </div>
 
+          <div className="form-columns">
+            <div className="form-field">
+              <label htmlFor="debt-tenor">Tenor (bulan)</label>
+              <input
+                id="debt-tenor"
+                type="number"
+                min="1"
+                placeholder="Contoh: 12"
+                value={tenorMonths}
+                onChange={e => setTenorMonths(e.target.value)}
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="debt-rem-months">Sisa Tenor (bulan)</label>
+              <input
+                id="debt-rem-months"
+                type="number"
+                min="0"
+                placeholder="Kosongkan jika sama dengan tenor"
+                value={remainingMonths}
+                onChange={e => setRemainingMonths(e.target.value)}
+              />
+            </div>
+          </div>
+
           <div className="form-field">
-            <label htmlFor="debt-notes">Catatan (Bunga / Tenor)</label>
+            <label htmlFor="debt-notes">Catatan (Bunga / Lainnya)</label>
             <input
               id="debt-notes"
-              placeholder="Contoh: Bunga fixed 3 tahun, tenor 15 tahun"
+              placeholder="Contoh: Bunga fixed 3 tahun pertama"
               value={notes}
               onChange={e => setNotes(e.target.value)}
             />
@@ -322,6 +363,11 @@ export function DebtReportsWorkspace() {
                         {isPiutang ? 'Cicilan pengembalian: ' : 'Angsuran: '}<strong>{money(d.monthlyPayment)}/bulan</strong> {d.dueDay ? `(Tiap tgl ${d.dueDay})` : ''}
                       </p>
                     )}
+                    {d.tenorMonths ? (
+                      <p className="small" style={{ marginTop: '4px' }}>
+                        Tenor: <strong>{d.tenorMonths} bulan</strong>{d.remainingMonths != null ? <> · Sisa tenor: <strong>{d.remainingMonths} bulan</strong></> : ''}
+                      </p>
+                    ) : null}
                     {d.notes && <p className="small muted" style={{ marginTop: '4px', fontStyle: 'italic' }}>"{d.notes}"</p>}
                   </div>
                   <button
