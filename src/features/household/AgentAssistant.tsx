@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { Bot, Send, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import { useHousehold } from './context'
 import { useAccount } from '../account/context'
+import { supabase } from '../../lib/supabase'
 import { daysUntil, formatDate, goalBalance, makeId, money, spentIn, TODAY, walletBalance } from './model'
 import type { HouseholdState } from './model'
 
@@ -223,6 +224,36 @@ function extractErrorDetail(raw: string): string {
   return text.length > 220 ? `${text.slice(0, 220)}…` : text
 }
 
+// Endpoint yang tidak lolos pemeriksaan CORS browser dirutekan lewat relai
+// server Myhome (/api/chat dan /api/models). Daftar host di sini harus sama
+// dengan daftar izin di api/_relay.js.
+const RELAY_HOSTS = new Set(['router.udi.web.id', 'integrate.api.nvidia.com'])
+
+function usesRelay(baseUrl: string): boolean {
+  try {
+    return RELAY_HOSTS.has(new URL(baseUrl).hostname)
+  } catch {
+    return false
+  }
+}
+
+// Header untuk memanggil relai: token sesi Supabase pemanggil (divalidasi
+// server), plus Base URL & API key dari pengaturan — key hanya diteruskan
+// server ke endpoint tujuan, tidak disimpan di server. Mengembalikan null
+// bila tidak ada sesi, supaya pemanggil jatuh ke panggilan langsung.
+async function relayHeaders(settings: AgentSettings): Promise<Record<string, string> | null> {
+  if (!supabase) return null
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  if (!token) return null
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    'X-Upstream-Base': settings.baseUrl.trim().replace(/\/+$/, ''),
+    'X-Upstream-Key': settings.apiKey.trim(),
+  }
+}
+
 function llmErrorMessage(status: number, detail: string): string {
   const head = `Mode AI menjawab error ${status}${detail ? `: ${detail}` : ''}.`
   if (status === 401 || status === 403) return `${head}\n\nPeriksa lagi API key di Pengaturan Asisten — kemungkinan key-nya salah, kosong, atau sudah tidak berlaku.`
@@ -236,10 +267,11 @@ async function askLLM(settings: AgentSettings, state: HouseholdState, history: C
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 150000)
   try {
-    const response = await fetch(`${baseUrl}/chat/completions`, {
+    const relay = usesRelay(baseUrl) ? await relayHeaders(settings) : null
+    const response = await fetch(relay ? '/api/chat' : `${baseUrl}/chat/completions`, {
       method: 'POST',
       signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey.trim()}` },
+      headers: relay ?? { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.apiKey.trim()}` },
       body: JSON.stringify({
         model: settings.model.trim(),
         stream: true,
@@ -392,7 +424,10 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 30000)
     try {
-      const response = await fetch(`${url}/models`, { headers: { Authorization: `Bearer ${key}` }, signal: controller.signal })
+      const relay = usesRelay(url) ? await relayHeaders({ baseUrl: url, model: model.trim(), apiKey: key }) : null
+      const response = relay
+        ? await fetch('/api/models', { method: 'POST', headers: relay, signal: controller.signal })
+        : await fetch(`${url}/models`, { headers: { Authorization: `Bearer ${key}` }, signal: controller.signal })
       if (!response.ok) {
         const detail = extractErrorDetail(await response.text().catch(() => ''))
         setTestResult(`Koneksi gagal — error ${response.status}${detail ? `: ${detail}` : ''}.`)
@@ -463,7 +498,7 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
           <div className="form-field">
             <label htmlFor="agent-api-key">API key</label>
             <input id="agent-api-key" type="password" autoComplete="off" placeholder="Tempel API key penyedia model" value={apiKey} onChange={event => setApiKey(event.target.value)} />
-            <small>API key hanya tersimpan di perangkat ini (localStorage) — tidak dikirim ke Supabase atau server Myhome. Contoh penyedia: NVIDIA (build.nvidia.com) dengan Base URL & model bawaan di atas.</small>
+            <small>API key hanya tersimpan di perangkat ini (localStorage). Untuk endpoint yang tidak mengizinkan panggilan langsung dari browser (misalnya router.udi.web.id dan NVIDIA), panggilan diteruskan lewat relai server Myhome — key hanya diteruskan ke endpoint tujuan, tidak disimpan atau dicatat di server. Contoh penyedia: NVIDIA (build.nvidia.com) dengan Base URL & model bawaan di atas.</small>
           </div>
           <div>
             <button type="button" className="secondary-button" disabled={testing || !baseUrl.trim() || !model.trim() || !apiKey.trim()} onClick={() => void testConnection()}>{testing ? 'Menghubungi endpoint…' : 'Tes koneksi'}</button>
