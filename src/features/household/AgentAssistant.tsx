@@ -18,12 +18,24 @@ interface BalanceCard {
   appliedBalance?: number
 }
 
+// Kartu konfirmasi pengeluaran: dibuat setelah Asisten membaca bukti QRIS
+// atau foto struk. Semua kolom masih bisa diubah pengguna sebelum menekan
+// Catat pengeluaran; tidak ada data yang berubah sebelum itu.
+interface ExpenseCard {
+  merchant: string
+  total: number
+  walletId: string
+  category: string
+  status: 'pending' | 'applied' | 'cancelled'
+}
+
 interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   text: string
   image?: string
   balanceCard?: BalanceCard
+  expenseCard?: ExpenseCard
 }
 
 interface AgentSettings {
@@ -46,7 +58,7 @@ const QUICK_QUESTIONS = ['Ringkasan hari ini', 'Tagihan terdekat apa?', 'Sisa ci
 const WELCOME: ChatMessage = {
   id: 'welcome',
   role: 'assistant',
-  text: 'Halo! Saya Asisten Myhome. Saya bisa menjawab dari data rumah kalian — misalnya tagihan terdekat, sisa cicilan dan piutang, saldo dompet, agenda hari ini, target tabungan, dan daftar belanja.\n\nKamu juga bisa mengirim screenshot m-banking lewat tombol gambar untuk menyamakan saldo dompet: saldonya saya baca otomatis, lalu kamu konfirmasi dulu sebelum diterapkan.\n\nTap salah satu pertanyaan cepat di bawah, atau tulis pertanyaanmu sendiri.',
+  text: 'Halo! Saya Asisten Myhome. Saya bisa menjawab dari data rumah kalian — misalnya tagihan terdekat, sisa cicilan dan piutang, saldo dompet, agenda hari ini, target tabungan, dan daftar belanja.\n\nKamu juga bisa mengirim gambar lewat tombol gambar: screenshot m-banking untuk menyamakan saldo dompet, atau bukti QRIS / foto struk untuk mencatat pengeluaran. Isinya saya baca otomatis, lalu kamu konfirmasi dulu lewat kartunya sebelum diterapkan.\n\nTap salah satu pertanyaan cepat di bawah, atau tulis pertanyaanmu sendiri.',
 }
 
 const FALLBACK_NO_KEY = 'Maaf, pertanyaan itu belum bisa saya jawab dari data dasar Myhome. Untuk pertanyaan bebas, aktifkan mode AI dulu: tap ikon pengaturan di atas panel ini, lalu isi API key dari penyedia model (misalnya NVIDIA). API key hanya tersimpan di perangkat ini.\n\nSementara itu, saya bisa menjawab soal: ringkasan hari ini, tagihan, cicilan/utang/piutang, saldo dompet, agenda, impian, dan belanja.'
@@ -295,7 +307,7 @@ async function askLLM(settings: AgentSettings, state: HouseholdState, history: C
         messages: [
           {
             role: 'system',
-            content: `Kamu adalah Asisten Myhome, asisten rumah tangga berbahasa Indonesia di aplikasi Myhome. Jawab singkat, ramah, dan hanya berdasarkan data rumah di bawah ini. Jika datanya tidak ada, katakan terus terang — jangan mengarang angka. Kamu tidak bisa mengubah atau menghapus data apa pun secara langsung; satu-satunya pengecualian adalah penyamaan saldo dompet dari screenshot m-banking, yang berjalan lewat kartu konfirmasi khusus dan selalu menunggu persetujuan pengguna.\n\nData rumah saat ini:\n${buildContext(state)}`,
+            content: `Kamu adalah Asisten Myhome, asisten rumah tangga berbahasa Indonesia di aplikasi Myhome. Jawab singkat, ramah, dan hanya berdasarkan data rumah di bawah ini. Jika datanya tidak ada, katakan terus terang — jangan mengarang angka. Kamu tidak bisa mengubah atau menghapus data apa pun secara langsung; satu-satunya pengecualian adalah penyamaan saldo dompet dan pencatatan pengeluaran dari screenshot m-banking, bukti QRIS, atau foto struk, yang berjalan lewat kartu konfirmasi khusus dan selalu menunggu persetujuan pengguna.\n\nData rumah saat ini:\n${buildContext(state)}`,
           },
           ...history.slice(-6).map(message => ({ role: message.role, content: message.text })),
           { role: 'user', content: question },
@@ -350,16 +362,29 @@ async function askLLM(settings: AgentSettings, state: HouseholdState, history: C
   }
 }
 
-interface BalanceReading {
-  bank: string
-  balance: number
+// Hasil baca satu kiriman gambar: layar saldo m-banking ATAU bukti
+// pengeluaran (bukti QRIS berhasil / foto struk). Jenisnya ditentukan model
+// dari isi gambarnya, lalu pengguna mengonfirmasi lewat kartu yang sesuai.
+type ScreenshotReading =
+  | { type: 'balance'; bank: string; balance: number }
+  | { type: 'expense'; merchant: string; total: number; bank: string; category: string }
+
+// Kategori pengeluaran yang sama dengan formulir transaksi manual.
+const EXPENSE_CATEGORY_KEYS = ['makan', 'belanja', 'kencan', 'transport', 'hobi', 'tagihan']
+const EXPENSE_CATEGORY_LABELS: Record<string, string> = {
+  makan: 'Makan & dapur',
+  belanja: 'Belanja rumah',
+  kencan: 'Kencan berdua',
+  transport: 'Bensin & kendaraan',
+  hobi: 'Hobi & personal',
+  tagihan: 'Tagihan',
 }
 
-// Membaca nama bank & saldo utama dari screenshot m-banking memakai model
-// vision yang sama dengan mode AI (lewat relai bila host-nya terdaftar).
-// Model diminta membalas JSON murni; penguraian di sisi klien dibuat longgar
-// (fence ```json, teks pengantar) tapi angka saldo divalidasi ketat.
-async function readBalanceFromScreenshot(settings: AgentSettings, dataUrl: string): Promise<BalanceReading> {
+// Mengirim satu gambar ke model vision (jalur yang sama dengan mode AI,
+// lewat relai bila host-nya terdaftar) dan mengembalikan teks jawabannya.
+// Sebagian model membalas sebagai aliran SSE walau stream tidak diminta —
+// potongannya disatukan di sini.
+async function visionTextContent(settings: AgentSettings, dataUrl: string, instruction: string): Promise<string> {
   const baseUrl = settings.baseUrl.trim().replace(/\/+$/, '')
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 150000)
@@ -373,11 +398,11 @@ async function readBalanceFromScreenshot(settings: AgentSettings, dataUrl: strin
         model: settings.model.trim(),
         stream: false,
         messages: [
-          { role: 'system', content: 'Kamu adalah pembaca screenshot m-banking untuk aplikasi rumah tangga Myhome. Tugasmu hanya mengekstrak data dari gambar — jangan memberi penjelasan apa pun.' },
+          { role: 'system', content: 'Kamu adalah pembaca gambar untuk aplikasi rumah tangga Myhome. Tugasmu hanya mengekstrak data dari gambar — jangan memberi penjelasan apa pun.' },
           {
             role: 'user',
             content: [
-              { type: 'text', text: 'Dari screenshot m-banking ini, baca nama bank atau e-wallet dan saldo utama yang paling menonjol. Balas HANYA dengan JSON persis dalam format ini: {"bank":"SeaBank","saldo":4278245}. Saldo harus angka rupiah utuh tanpa titik, koma, atau simbol. Jika saldo tidak terlihat jelas, balas {"bank":"","saldo":0}.' },
+              { type: 'text', text: instruction },
               { type: 'image_url', image_url: { url: dataUrl } },
             ],
           },
@@ -388,7 +413,6 @@ async function readBalanceFromScreenshot(settings: AgentSettings, dataUrl: strin
     if (!response.ok) throw new LlmHttpError(response.status, extractErrorDetail(raw))
     let content = ''
     if (raw.trimStart().startsWith('data:')) {
-      // Sebagian model membalas sebagai aliran SSE walau stream tidak diminta — satukan potongannya.
       for (const line of raw.split('\n')) {
         const trimmed = line.trim()
         if (!trimmed.startsWith('data:')) continue
@@ -405,15 +429,47 @@ async function readBalanceFromScreenshot(settings: AgentSettings, dataUrl: strin
       if (typeof messageContent === 'string') content = messageContent
       else if (Array.isArray(messageContent)) content = messageContent.map(part => part.text ?? '').join('')
     }
-    const jsonMatch = content.match(/\{[\s\S]*?\}/)
-    if (!jsonMatch) throw new Error('unreadable')
-    const parsed = JSON.parse(jsonMatch[0]) as { bank?: unknown; saldo?: unknown }
-    const balance = typeof parsed.saldo === 'number' ? parsed.saldo : Number(String(parsed.saldo ?? '').replace(/[^\d]/g, ''))
-    if (!Number.isSafeInteger(balance) || balance <= 0 || balance > 999999999999) throw new Error('unreadable')
-    return { bank: typeof parsed.bank === 'string' ? parsed.bank.trim() : '', balance }
+    return content
   } finally {
     clearTimeout(timer)
   }
+}
+
+function parseMoneyField(value: unknown): number {
+  return typeof value === 'number' ? value : Number(String(value ?? '').replace(/[^\d]/g, ''))
+}
+
+function isValidMoneyAmount(value: number): boolean {
+  return Number.isSafeInteger(value) && value > 0 && value <= 999999999999
+}
+
+// Membaca gambar dalam SATU panggilan: model mengklasifikasikan isinya
+// (saldo vs pengeluaran) dan mengekstrak datanya sebagai JSON. Penguraian
+// di sisi klien longgar (fence ```json, teks pengantar) tapi semua nominal
+// divalidasi ketat; gagal baca melempar Error('unreadable').
+async function analyzeScreenshot(settings: AgentSettings, dataUrl: string): Promise<ScreenshotReading> {
+  const instruction = 'Periksa gambar ini untuk aplikasi rumah tangga Myhome. Ada dua kemungkinan isi:\n'
+    + '1) Layar m-banking/e-wallet yang menampilkan SALDO utama → balas: {"jenis":"saldo","bank":"SeaBank","nominal":4278245}\n'
+    + '2) Bukti pembayaran QRIS berhasil atau foto struk belanja → balas: {"jenis":"pengeluaran","merchant":"Indomaret","nominal":52000,"bank":"SeaBank","kategori":"belanja"}\n'
+    + 'Aturan: "nominal" adalah saldo utama (untuk jenis saldo) atau total bayar (untuk jenis pengeluaran), angka rupiah utuh tanpa titik, koma, atau simbol. "bank" adalah nama bank/e-wallet yang terlihat (pada bukti QRIS biasanya tertulis sebagai sumber dana); kosongkan "" bila tidak ada. "kategori" pilih SATU dari: makan, belanja, kencan, transport, hobi, tagihan — tebak dari merchantnya (warung/restoran/kopi → makan; minimarket/supermarket/toko → belanja; bensin/parkir/ojek → transport; listrik/internet/pulsa → tagihan). "merchant" adalah nama toko/merchant penerima pembayaran.\n'
+    + 'Balas HANYA JSON-nya. Jika gambar bukan keduanya atau nominalnya tidak terbaca jelas, balas {"jenis":""}.'
+  const content = await visionTextContent(settings, dataUrl, instruction)
+  const jsonMatch = content.match(/\{[\s\S]*?\}/)
+  if (!jsonMatch) throw new Error('unreadable')
+  const parsed = JSON.parse(jsonMatch[0]) as { jenis?: unknown; bank?: unknown; nominal?: unknown; merchant?: unknown; kategori?: unknown }
+  const amount = parseMoneyField(parsed.nominal)
+  const bank = typeof parsed.bank === 'string' ? parsed.bank.trim() : ''
+  if (parsed.jenis === 'saldo') {
+    if (!isValidMoneyAmount(amount)) throw new Error('unreadable')
+    return { type: 'balance', bank, balance: amount }
+  }
+  if (parsed.jenis === 'pengeluaran') {
+    if (!isValidMoneyAmount(amount)) throw new Error('unreadable')
+    const merchant = typeof parsed.merchant === 'string' ? parsed.merchant.trim().slice(0, 100) : ''
+    const category = typeof parsed.kategori === 'string' && EXPENSE_CATEGORY_KEYS.includes(parsed.kategori.trim()) ? parsed.kategori.trim() : 'belanja'
+    return { type: 'expense', merchant, total: amount, bank, category }
+  }
+  throw new Error('unreadable')
 }
 
 // Alias nama bank/e-wallet untuk mencocokkan teks terbaca dari screenshot
@@ -604,28 +660,39 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
     const image = pendingImage
     if (!image || sending) return
     setPendingImage(null)
-    const caption = input.trim() || 'Screenshot m-banking'
+    const caption = input.trim() || 'Screenshot'
     setInput('')
     const userMessage: ChatMessage = { id: makeId(), role: 'user', text: caption, image }
     const history = [...messages, userMessage]
     setMessages(history)
     if (!settings.apiKey.trim()) {
-      setMessages([...history, { id: makeId(), role: 'assistant', text: 'Membaca saldo dari screenshot butuh mode AI. Aktifkan dulu lewat ikon pengaturan di atas panel ini (isi Base URL, model, dan API key), lalu kirim lagi screenshot-nya.' }])
+      setMessages([...history, { id: makeId(), role: 'assistant', text: 'Membaca screenshot butuh mode AI. Aktifkan dulu lewat ikon pengaturan di atas panel ini (isi Base URL, model, dan API key), lalu kirim lagi gambarnya.' }])
       return
     }
     setSending(true)
     try {
-      const reading = await readBalanceFromScreenshot(settings, image)
-      const wallet = matchWallet(store.state, reading.bank) ?? store.state.wallets[0]
-      if (!wallet) {
-        setMessages([...history, { id: makeId(), role: 'assistant', text: `Saldo terbaca: ${money(reading.balance)}${reading.bank ? ` (${reading.bank})` : ''}. Tapi belum ada dompet di aplikasi, jadi belum bisa disamakan. Tambahkan dompet dulu di tab Keuangan.` }])
+      const reading = await analyzeScreenshot(settings, image)
+      if (!store.state.wallets.length) {
+        setMessages([...history, { id: makeId(), role: 'assistant', text: 'Gambarnya terbaca, tapi belum ada dompet di aplikasi jadi belum bisa diterapkan. Tambahkan dompet dulu di tab Keuangan.' }])
         return
       }
+      if (reading.type === 'balance') {
+        const wallet = matchWallet(store.state, reading.bank) ?? store.state.wallets[0]
+        const cardMessage: ChatMessage = {
+          id: makeId(),
+          role: 'assistant',
+          text: 'Saldo dari screenshot terbaca. Periksa kartunya — saldo baru diterapkan setelah kamu menekan Samakan saldo.',
+          balanceCard: { walletId: wallet.id, bankLabel: reading.bank, readBalance: reading.balance, status: 'pending' },
+        }
+        setMessages([...history, cardMessage])
+        return
+      }
+      const wallet = matchWallet(store.state, reading.bank) ?? store.state.wallets[0]
       const cardMessage: ChatMessage = {
         id: makeId(),
         role: 'assistant',
-        text: 'Saldo dari screenshot terbaca. Periksa kartunya — saldo baru diterapkan setelah kamu menekan Samakan saldo.',
-        balanceCard: { walletId: wallet.id, bankLabel: reading.bank, readBalance: reading.balance, status: 'pending' },
+        text: 'Pengeluaran dari gambar terbaca. Periksa kartunya — pengeluaran baru tercatat setelah kamu menekan Catat pengeluaran.',
+        expenseCard: { merchant: reading.merchant || 'Pengeluaran', total: reading.total, walletId: wallet.id, category: reading.category, status: 'pending' },
       }
       setMessages([...history, cardMessage])
     } catch (error) {
@@ -634,7 +701,7 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
         ? llmErrorMessage(error.status, error.detail)
         : isAbort ? FALLBACK_TIMEOUT
         : error instanceof Error && error.message === 'unreadable'
-          ? 'Maaf, saldo di screenshot itu tidak terbaca jelas, jadi tidak ada data yang diubah. Coba screenshot yang menampilkan saldo utama dengan jelas (tidak buram/terpotong), lalu kirim lagi.'
+          ? 'Maaf, gambar itu tidak terbaca jelas sebagai layar saldo maupun struk/bukti QRIS, jadi tidak ada data yang diubah. Coba gambar yang menampilkan saldo utama atau total bayar dengan jelas (tidak buram/terpotong), lalu kirim lagi.'
           : FALLBACK_ERROR
       setMessages([...history, { id: makeId(), role: 'assistant', text }])
     } finally {
@@ -686,6 +753,45 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
     }])
   }
 
+  const updateExpenseCard = (messageId: string, patch: Partial<ExpenseCard>) => {
+    setMessages(current => current.map(message => message.expenseCard && message.id === messageId
+      ? { ...message, expenseCard: { ...message.expenseCard, ...patch } }
+      : message))
+  }
+
+  const applyExpenseCard = async (message: ChatMessage) => {
+    const card = message.expenseCard
+    if (!card || card.status !== 'pending' || applyingId) return
+    const wallet = store.state.wallets.find(item => item.id === card.walletId)
+    if (!wallet || !isValidMoneyAmount(card.total)) return
+    setApplyingId(message.id)
+    const title = card.merchant.trim() || 'Pengeluaran'
+    const entry: Transaction = {
+      id: makeId(),
+      kind: 'expense',
+      title,
+      amount: card.total,
+      walletId: wallet.id,
+      category: card.category,
+      pocket: 'household',
+      recordedBy: currentProfile.role,
+      recordedByUserId: currentProfile.id,
+      date: TODAY,
+    }
+    const error = await store.saveTransaction(entry)
+    setApplyingId(null)
+    if (error) {
+      setMessages(current => [...current, { id: makeId(), role: 'assistant', text: `Pengeluaran belum berhasil dicatat: ${error}` }])
+      return
+    }
+    updateExpenseCard(message.id, { status: 'applied', merchant: title })
+    setMessages(current => [...current, {
+      id: makeId(),
+      role: 'assistant',
+      text: `Pengeluaran tercatat: ${title} ${money(card.total)} dari dompet ${wallet.name}. Nominal ini ikut memotong anggaran belanja hari ini.`,
+    }])
+  }
+
   const submit = (event: FormEvent) => {
     event.preventDefault()
     if (pendingImage) { void sendScreenshot(); return }
@@ -716,6 +822,33 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
             <button type="button" className="agent-balance-cancel" disabled={applyingId === message.id} onClick={() => updateCard(message.id, { status: 'cancelled' })}>Batal</button>
           </div>)}
       {card.status === 'applied' && <p className="agent-balance-note">Sudah diterapkan — saldo sekarang {money(card.appliedBalance ?? card.readBalance)}.</p>}
+      {card.status === 'cancelled' && <p className="agent-balance-note">Dibatalkan — tidak ada perubahan data.</p>}
+    </div>
+  }
+
+  const renderExpenseCard = (message: ChatMessage) => {
+    const card = message.expenseCard
+    if (!card) return null
+    const wallet = store.state.wallets.find(item => item.id === card.walletId)
+    return <div className="agent-balance">
+      <p className="agent-balance-head">Catat pengeluaran dari gambar</p>
+      <div className="agent-balance-row"><span>Judul</span>{card.status === 'pending'
+        ? <input type="text" aria-label="Judul pengeluaran" maxLength={100} value={card.merchant} onChange={event => updateExpenseCard(message.id, { merchant: event.target.value })} />
+        : <strong>{card.merchant}</strong>}</div>
+      <div className="agent-balance-row"><span>Total (Rp)</span>{card.status === 'pending'
+        ? <input type="text" inputMode="numeric" aria-label="Total pengeluaran dalam rupiah" value={card.total ? String(card.total) : ''} onChange={event => updateExpenseCard(message.id, { total: Number(event.target.value.replace(/[^\d]/g, '')) || 0 })} />
+        : <strong>{money(card.total)}</strong>}</div>
+      <div className="agent-balance-row"><span>Kategori</span>{card.status === 'pending'
+        ? <select aria-label="Kategori pengeluaran" value={card.category} onChange={event => updateExpenseCard(message.id, { category: event.target.value })}>{EXPENSE_CATEGORY_KEYS.map(key => <option key={key} value={key}>{EXPENSE_CATEGORY_LABELS[key]}</option>)}</select>
+        : <strong>{EXPENSE_CATEGORY_LABELS[card.category] ?? card.category}</strong>}</div>
+      <div className="agent-balance-row"><span>Dompet</span>{card.status === 'pending'
+        ? <select aria-label="Dompet sumber pengeluaran" value={card.walletId} onChange={event => updateExpenseCard(message.id, { walletId: event.target.value })}>{store.state.wallets.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
+        : <strong>{wallet?.name ?? '—'}</strong>}</div>
+      {card.status === 'pending' && <div className="agent-balance-actions">
+        <button type="button" className="agent-balance-apply" disabled={applyingId === message.id || !isValidMoneyAmount(card.total)} onClick={() => void applyExpenseCard(message)}>{applyingId === message.id ? 'Mencatat…' : 'Catat pengeluaran'}</button>
+        <button type="button" className="agent-balance-cancel" disabled={applyingId === message.id} onClick={() => updateExpenseCard(message.id, { status: 'cancelled' })}>Batal</button>
+      </div>}
+      {card.status === 'applied' && <p className="agent-balance-note">Sudah dicatat sebagai pengeluaran hari ini.</p>}
       {card.status === 'cancelled' && <p className="agent-balance-note">Dibatalkan — tidak ada perubahan data.</p>}
     </div>
   }
@@ -817,9 +950,9 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
             {messages.map(message => message.role === 'assistant'
               ? <div key={message.id} className="agent-row">
                   <span className="agent-avatar" aria-hidden="true"><Bot size={15} /></span>
-                  <div className="agent-msg assistant">{renderRichText(message.text)}{message.balanceCard && renderBalanceCard(message)}</div>
+                  <div className="agent-msg assistant">{renderRichText(message.text)}{message.balanceCard && renderBalanceCard(message)}{message.expenseCard && renderExpenseCard(message)}</div>
                 </div>
-              : <div key={message.id} className="agent-msg user">{message.image && <img className="agent-msg-image" src={message.image} alt="Screenshot m-banking yang dikirim" />}{message.text}</div>)}
+              : <div key={message.id} className="agent-msg user">{message.image && <img className="agent-msg-image" src={message.image} alt="Gambar yang dikirim ke Asisten" />}{message.text}</div>)}
             {streamText && <div className="agent-row">
               <span className="agent-avatar" aria-hidden="true"><Bot size={15} /></span>
               <div className="agent-msg assistant">{renderRichText(streamText)}<span className="agent-caret" aria-hidden="true" /></div>
@@ -830,17 +963,17 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
             </div>}
           </div>
           <div className="agent-chips" role="group" aria-label="Pertanyaan cepat">
-            <button type="button" className="agent-chip agent-chip-action" disabled={sending} onClick={() => fileInputRef.current?.click()}><ImagePlus size={14} /> Samakan saldo dari screenshot</button>
+            <button type="button" className="agent-chip agent-chip-action" disabled={sending} onClick={() => fileInputRef.current?.click()}><ImagePlus size={14} /> Scan saldo / struk / QRIS</button>
             {QUICK_QUESTIONS.map(question => <button key={question} type="button" className="agent-chip" disabled={sending} onClick={() => void send(question)}>{question}</button>)}
           </div>
           {pendingImage && <div className="agent-pending-image">
             <img src={pendingImage} alt="Screenshot yang akan dikirim" />
-            <span>Saldo akan dibaca dari screenshot ini — tekan kirim.</span>
+            <span>Gambar akan dibaca otomatis (saldo / struk / QRIS) — tekan kirim.</span>
             <button type="button" aria-label="Hapus lampiran screenshot" onClick={() => setPendingImage(null)}><X size={15} /></button>
           </div>}
           <form className="agent-composer" onSubmit={submit}>
             <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void handleImageFile(file) }} />
-            <button type="button" className="agent-attach" aria-label="Lampirkan screenshot m-banking" disabled={sending} onClick={() => fileInputRef.current?.click()}><ImagePlus size={20} /></button>
+            <button type="button" className="agent-attach" aria-label="Lampirkan screenshot, bukti QRIS, atau foto struk" disabled={sending} onClick={() => fileInputRef.current?.click()}><ImagePlus size={20} /></button>
             <label className="sr-only" htmlFor="agent-input">Tulis pertanyaan untuk Asisten</label>
             <input id="agent-input" type="text" autoComplete="off" maxLength={500} placeholder="Tanya tagihan, cicilan, saldo…" value={input} onChange={event => setInput(event.target.value)} />
             <button type="submit" className="agent-send" aria-label="Kirim pertanyaan" disabled={sending || (!input.trim() && !pendingImage)}><Send size={19} /></button>
