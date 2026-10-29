@@ -90,6 +90,7 @@ svg { flex-shrink: 0; }
   --pastel-3: #AACBDE;
   --pastel-4: #F2A65A;
   --pastel-5: #BFE3D0;
+  --soft: #FFFDF4;
 }
 :root[data-theme="dark"] {
   --page-bg: #111216;
@@ -107,6 +108,7 @@ svg { flex-shrink: 0; }
   --pastel-4: #BFE3D0;
   --pastel-5: #F6C445;
   --lavender: #F9E4EA;
+  --soft: #FFFBF7;
   --focus: #8A5A78;
 }
 :root:not([data-theme="dark"]) { background: var(--page-bg); }
