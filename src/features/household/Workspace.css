@@ -156,6 +156,9 @@
 .debt-form-compact .form-field > label { font-size: 11px; }
 .debt-form-compact .form-field > input, .debt-form-compact .form-field > select { min-height: 44px; padding-top: 10px; padding-bottom: 10px; }
 .debt-form-compact .form-columns { gap: 10px; }
+/* Isian dalam baris dua kolom menempel ke bawah agar sejajar walau labelnya beda tinggi. */
+.debt-form-compact .form-columns .form-field { justify-content: flex-end; }
+.debt-form-compact .compact-money { min-height: 44px; }
 
 [data-theme="dark"] .danger-text, [data-theme="dark"] .over-limit { color: #ffb2b2; }
 [data-theme="dark"] .danger-button { color: #402329; background: #ffb2b2; }

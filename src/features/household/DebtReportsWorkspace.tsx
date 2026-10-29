@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react'
 import { useHousehold } from './context'
 import { money, makeId, walletBalance, formatDate } from './model'
 import type { DebtLoan } from './model'
-import { Section, Modal, Meter } from './ui'
+import { Section, Modal, Meter, MoneyInput } from './ui'
 
 const chipStyle: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', border: '1px solid var(--workspace-border)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500 }
 
@@ -214,9 +214,9 @@ export function DebtReportsWorkspace() {
               <label htmlFor="debt-type">Jenis Catatan</label>
               <select id="debt-type" value={type} onChange={e => setType(e.target.value as any)}>
                 <option value="kpr">Utang KPR Rumah</option>
-                <option value="kendaraan">Utang Kredit Kendaraan</option>
-                <option value="personal">Utang Pinjaman Pribadi</option>
-                <option value="piutang">Piutang (Uang Kita Dipinjam Orang)</option>
+                <option value="kendaraan">Kredit Kendaraan</option>
+                <option value="personal">Pinjaman Pribadi</option>
+                <option value="piutang">Piutang (Uang Kita)</option>
               </select>
             </div>
             <div className="form-field">
@@ -231,42 +231,15 @@ export function DebtReportsWorkspace() {
           </div>
 
           <div className="form-columns">
-            <div className="form-field">
-              <label htmlFor="debt-total">{type === 'piutang' ? 'Total Uang yang Dipinjamkan' : 'Total Pokok Pinjaman (Rp)'}</label>
-              <input
-                id="debt-total"
-                type="number"
-                placeholder="Contoh: 5000000"
-                value={totalAmount}
-                onChange={e => setTotalAmount(e.target.value)}
-              />
-            </div>
-            <div className="form-field">
-              <label htmlFor="debt-rem">{type === 'piutang' ? 'Sisa yang Belum Dikembalikan' : 'Sisa Pokok Saat Ini (Rp)'}</label>
-              <input
-                id="debt-rem"
-                type="number"
-                placeholder="Kosongkan jika utuh"
-                value={remainingAmount}
-                onChange={e => setRemainingAmount(e.target.value)}
-              />
-            </div>
+            <MoneyInput id="debt-total" label={type === 'piutang' ? 'Total Dipinjamkan' : 'Total Pokok Pinjaman'} value={totalAmount} onChange={setTotalAmount} allowZero />
+            <MoneyInput id="debt-rem" label={type === 'piutang' ? 'Sisa Belum Kembali' : 'Sisa Pokok Saat Ini'} value={remainingAmount} onChange={setRemainingAmount} allowZero />
           </div>
           <p className="small muted" style={{ margin: '-4px 0 12px', fontSize: '11px' }}>
             Cukup isi salah satu dari Total / Sisa — kolom yang kosong akan mengikuti angka yang diisi.
           </p>
 
           <div className="form-columns">
-            <div className="form-field">
-              <label htmlFor="debt-monthly">Angsuran per Bulan (Rp)</label>
-              <input
-                id="debt-monthly"
-                type="number"
-                placeholder="Contoh: 3500000"
-                value={monthlyPayment}
-                onChange={e => setMonthlyPayment(e.target.value)}
-              />
-            </div>
+            <MoneyInput id="debt-monthly" label="Angsuran per Bulan" value={monthlyPayment} onChange={setMonthlyPayment} allowZero />
             <div className="form-field">
               <label htmlFor="debt-due">Tanggal Jatuh Tempo</label>
               <input
