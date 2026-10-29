@@ -36,6 +36,7 @@ export function DebtReportsWorkspace() {
   const [mirrorLender, setMirrorLender] = useState('')
   // Checkbox + nama pemberi pinjaman pada form tambah piutang
   const [mirrorPair, setMirrorPair] = useState(false)
+  const [creditCardFunded, setCreditCardFunded] = useState(false)
   const [mirrorLenderName, setMirrorLenderName] = useState('')
 
   const buildMirrorDebt = (source: DebtLoan, lenderName: string): DebtLoan => {
@@ -77,8 +78,11 @@ export function DebtReportsWorkspace() {
   // Perhitungan Neraca Kekayaan Bersih (Net Worth)
   const totalWallets = state.wallets.reduce((sum, w) => sum + walletBalance(w, state.transactions), 0)
   const totalSavings = state.goals.reduce((sum, g) => sum + g.openingAmount, 0)
-  // Piutang = Uang kita yang dipinjam orang lain (merupakan ASET)
-  const totalPiutang = state.debts.filter(d => d.type === 'piutang').reduce((sum, d) => sum + d.remainingAmount, 0)
+  // Piutang = Uang kita yang dipinjam orang lain (merupakan ASET) — kecuali yang
+  // dibiayai kartu kredit: dananya tagihan kartu yang kita bayar, bukan uang kita,
+  // jadi tidak dihitung sebagai aset di neraca (permintaan Ketua 29 Okt 2026).
+  const totalPiutang = state.debts.filter(d => d.type === 'piutang' && !d.creditCardFunded).reduce((sum, d) => sum + d.remainingAmount, 0)
+  const totalPiutangKartuKredit = state.debts.filter(d => d.type === 'piutang' && d.creditCardFunded).reduce((sum, d) => sum + d.remainingAmount, 0)
   const totalAssets = totalWallets + totalSavings + totalPiutang
 
   // Utang / Liabilitas = Uang yang kita pinjam (KPR, motor, pinjaman)
@@ -107,6 +111,7 @@ export function DebtReportsWorkspace() {
       dueDay: dueDay ? Number(dueDay) : undefined,
       tenorMonths: tenor,
       remainingMonths: sisaTenor,
+      creditCardFunded: type === 'piutang' && creditCardFunded ? true : undefined,
       notes: notes.trim()
     }
     const message = await store.saveDebt(item)
@@ -123,6 +128,7 @@ export function DebtReportsWorkspace() {
     setRemainingMonths('')
     setNotes('')
     setMirrorPair(false)
+    setCreditCardFunded(false)
     setMirrorLenderName('')
     setFormOpen(false)
   }
@@ -182,6 +188,12 @@ export function DebtReportsWorkspace() {
             <strong style={{ color: '#ef4444', fontSize: '14px' }}>-{money(totalDebts)}</strong>
           </div>
         </div>
+
+        {totalPiutangKartuKredit > 0 && (
+          <p style={{ margin: '12px 0 0', fontSize: '11.5px', color: '#d0d0ce' }}>
+            Piutang kartu kredit sebesar {money(totalPiutangKartuKredit)} tidak dihitung di neraca ini.
+          </p>
+        )}
       </section>
 
       {/* ─── 2. DAFTAR CICILAN, KPR & PIUTANG ─── */}
@@ -318,6 +330,23 @@ export function DebtReportsWorkspace() {
             </div>
           )}
 
+          {type === 'piutang' && (
+            <div className="form-field">
+              <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', fontWeight: 500, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={creditCardFunded}
+                  onChange={e => setCreditCardFunded(e.target.checked)}
+                  style={{ marginTop: '3px' }}
+                />
+                <span>Dibiayai kartu kredit — jangan hitung piutang ini di Kekayaan Bersih</span>
+              </label>
+              <p className="small muted" style={{ margin: '6px 0 0' }}>
+                Piutang tetap tercatat dan pengembaliannya tetap bisa dicatat, tapi tidak menaikkan angka Kekayaan Bersih — dananya dari kartu kredit, bukan dari dompet kita.
+              </p>
+            </div>
+          )}
+
           <button type="submit" className="primary-button" style={{ width: '100%' }}>
             <Plus size={16} /> Simpan Pinjaman / KPR
           </button>
@@ -356,8 +385,9 @@ export function DebtReportsWorkspace() {
                 <p className="small muted" style={{ marginTop: '8px' }}>
                   {pctPaid}% {isPiutang ? 'sudah dikembalikan' : 'lunas'} · dari total {money(d.totalAmount)}
                 </p>
-                {(d.monthlyPayment || d.tenorMonths) && (
+                {(d.monthlyPayment || d.tenorMonths || d.creditCardFunded) && (
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '12px' }}>
+                    {d.creditCardFunded ? <span style={chipStyle}><CreditCard size={12} /> Kartu kredit · di luar neraca</span> : null}
                     {d.monthlyPayment && <span style={chipStyle}><Wallet size={12} /> {money(d.monthlyPayment)}/bulan</span>}
                     {d.monthlyPayment && d.dueDay ? <span style={chipStyle}><CalendarDays size={12} /> Tiap tgl {d.dueDay}</span> : null}
                     {d.tenorMonths ? <span style={chipStyle}><Clock size={12} /> Tenor {d.tenorMonths} bln{d.remainingMonths != null ? ` · sisa ${d.remainingMonths} bln` : ''}</span> : null}
@@ -382,6 +412,16 @@ export function DebtReportsWorkspace() {
                         onClick={() => openMirrorForm(d)}
                       >
                         <CreditCard size={15} /> Buat Utang Pasangan
+                      </button>
+                    )}
+                    {isPiutang && (
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flex: '1 1 100%' }}
+                        onClick={() => void store.saveDebt({ ...d, creditCardFunded: !d.creditCardFunded })}
+                      >
+                        <CreditCard size={15} /> {d.creditCardFunded ? 'Ditandai kartu kredit — ketuk untuk batalkan' : 'Tandai sebagai piutang kartu kredit'}
                       </button>
                     )}
                   </div>

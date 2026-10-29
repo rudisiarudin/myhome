@@ -120,6 +120,7 @@ export interface DebtLoan {
   dueDay?: number
   tenorMonths?: number
   remainingMonths?: number
+  creditCardFunded?: boolean
   notes?: string
 }
 

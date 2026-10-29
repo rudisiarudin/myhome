@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
-import { CalendarDays, Check, ChevronRight, Copy, Heart, Home, House, Moon, Plus, RefreshCw, ShoppingBag, Sparkles, Sun, Trash2, Utensils, Wallet } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, Copy, Eye, EyeOff, Heart, Home, House, Moon, Plus, RefreshCw, ShoppingBag, Sparkles, Sun, Trash2, Utensils, Wallet } from 'lucide-react'
 import { AppLogoIcon } from './components/AppLogo'
 import type { FoodIdea, ShoppingItem, ScheduleEvent } from './types'
 import { useHousehold } from './features/household/context'
@@ -356,6 +356,8 @@ export default function App() {
   const spinTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [assistantOpen, setAssistantOpen] = useState(false)
+  const [hideAmounts, setHideAmounts] = useState(() => { try { return localStorage.getItem('myhome.hideAmounts') === '1' } catch { return false } })
+  const toggleHideAmounts = () => setHideAmounts(prev => { const next = !prev; try { localStorage.setItem('myhome.hideAmounts', next ? '1' : '0') } catch { /* Penyimpanan tidak tersedia — abaikan. */ } return next })
   const todaySpent = spentIn(state.transactions, TODAY, 'household')
   const dailyBudget = state.budget.daily
   const remaining = dailyBudget - todaySpent
@@ -364,8 +366,11 @@ export default function App() {
   const piutangList = state.debts.filter(d => d.type === 'piutang')
   const totalPiutang = piutangList.reduce((sum, d) => sum + d.remainingAmount, 0)
   const totalPiutangAwal = piutangList.reduce((sum, d) => sum + d.totalAmount, 0)
+  // Piutang kartu kredit tidak masuk Kekayaan Bersih: dananya tagihan kartu, bukan uang kita.
+  const totalPiutangBersih = piutangList.filter(d => !d.creditCardFunded).reduce((sum, d) => sum + d.remainingAmount, 0)
+  const totalPiutangKartuKredit = piutangList.filter(d => d.creditCardFunded).reduce((sum, d) => sum + d.remainingAmount, 0)
   const totalUtang = state.debts.filter(d => d.type !== 'piutang').reduce((sum, d) => sum + d.remainingAmount, 0)
-  const netWorth = totalWallets + totalSavings + totalPiutang - totalUtang
+  const netWorth = totalWallets + totalSavings + totalPiutangBersih - totalUtang
   const pendingShopping = shoppingList.filter(item => !item.isBought)
 
   useEffect(() => {
@@ -467,10 +472,10 @@ export default function App() {
 
         <section className="hero-card" aria-label="Kekayaan bersih">
           <Waves />
-          <div className="row-between"><span className="hero-label">Kekayaan Bersih</span><button className="hero-link" onClick={() => { setBudgetSubTab('debts'); navigate('budget') }}>KPR &amp; Neraca<ChevronRight size={14} /></button></div>
-          <div className="hero-total">{money(netWorth)}</div>
-          <p className="hero-sub">Dompet + tabungan + piutang, bersih dari semua utang</p>
-          <div className="hero-wallets">{state.wallets.map(w => <span key={w.id} className="hero-chip">{w.name} · {money(walletBalance(w, state.transactions))}</span>)}</div>
+          <div className="row-between"><span className="hero-label-wrap"><span className="hero-label">Kekayaan Bersih</span><button type="button" className="hero-eye" onClick={toggleHideAmounts} aria-label={hideAmounts ? 'Tampilkan nominal kekayaan bersih' : 'Sembunyikan nominal kekayaan bersih'} aria-pressed={hideAmounts}>{hideAmounts ? <EyeOff size={15} /> : <Eye size={15} />}</button></span><button className="hero-link" onClick={() => { setBudgetSubTab('debts'); navigate('budget') }}>KPR &amp; Neraca<ChevronRight size={14} /></button></div>
+          <div className="hero-total">{hideAmounts ? 'Rp••••••••' : money(netWorth)}</div>
+          <p className="hero-sub">Dompet + tabungan + piutang, bersih dari semua utang{totalPiutangKartuKredit > 0 ? ' · piutang kartu kredit tidak dihitung' : ''}</p>
+          <div className="hero-wallets">{state.wallets.map(w => <span key={w.id} className="hero-chip">{w.name} · {hideAmounts ? 'Rp••••' : money(walletBalance(w, state.transactions))}</span>)}</div>
         </section>
 
         <div className="today-grid">

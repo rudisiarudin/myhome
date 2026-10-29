@@ -39,6 +39,7 @@ export function decodeHousehold(rows: Record<string, Row[]>): HouseholdState {
       dueDay: r.due_day == null ? undefined : Number(r.due_day),
       tenorMonths: r.tenor_months == null ? undefined : Number(r.tenor_months),
       remainingMonths: r.remaining_months == null ? undefined : Number(r.remaining_months),
+      creditCardFunded: r.credit_card_funded === true,
       notes: optional(r, 'notes')
     })),
     debtPayments: (rows.debt_payments ?? [])
