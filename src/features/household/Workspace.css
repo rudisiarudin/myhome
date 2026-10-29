@@ -248,3 +248,12 @@
 .inv-price-row strong { font-size: 16px; font-variant-numeric: tabular-nums; }
 .inv-detail { margin: 2px 0 10px; line-height: 1.7; }
 .inv-detail strong { font-variant-numeric: tabular-nums; }
+
+/* Grafik harga di jendela detail investasi. */
+.inv-clickable { cursor: pointer; }
+.inv-chart-hint { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; }
+.inv-ranges { grid-template-columns: repeat(4, 1fr); margin: 14px 0 8px; }
+.inv-chart { width: 100%; height: auto; display: block; }
+.inv-chart-stats { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.inv-chart-stats > strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+.inv-chart-times { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: var(--muted); margin-top: 4px; }
