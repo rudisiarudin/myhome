@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { Plus, Trash2, Download, Wallet, Check, X, CreditCard } from 'lucide-react'
+import { Plus, Trash2, Download, Wallet, Check, X, CreditCard, CalendarDays, Clock } from 'lucide-react'
+import type { CSSProperties } from 'react'
 import { useHousehold } from './context'
 import { money, makeId, walletBalance, formatDate } from './model'
 import type { DebtLoan } from './model'
-import { Section } from './ui'
+import { Section, Modal, Meter } from './ui'
+
+const chipStyle: CSSProperties = { display: 'inline-flex', alignItems: 'center', gap: '5px', border: '1px solid var(--workspace-border)', borderRadius: '999px', padding: '4px 10px', fontSize: '11px', fontWeight: 500 }
 
 function SectionHeading({ title, action, onAction }: { title: string; action?: string; onAction?: () => void }) {
   return <Section title={title} action={action} onAction={onAction} />
@@ -23,6 +26,9 @@ export function DebtReportsWorkspace() {
   const [tenorMonths, setTenorMonths] = useState('')
   const [remainingMonths, setRemainingMonths] = useState('')
   const [notes, setNotes] = useState('')
+
+  // Formulir tambah kini tampil sebagai modal, bukan formulir panjang menempel di halaman.
+  const [formOpen, setFormOpen] = useState(false)
 
   // Kartu utang pasangan: cermin utang dari piutang yang dibiayai kartu kredit/pinjaman,
   // agar Net Worth tidak tergelembung oleh piutang yang bukan uang tunai kita.
@@ -118,6 +124,7 @@ export function DebtReportsWorkspace() {
     setNotes('')
     setMirrorPair(false)
     setMirrorLenderName('')
+    setFormOpen(false)
   }
 
   // Ekspor CSV / Excel
@@ -180,12 +187,17 @@ export function DebtReportsWorkspace() {
       {/* ─── 2. DAFTAR CICILAN, KPR & PIUTANG ─── */}
       <section>
         <SectionHeading title="Utang, KPR & Piutang" />
-        <p className="muted small" style={{ marginTop: '-8px', marginBottom: '18px' }}>
+        <p className="muted small" style={{ marginTop: '-8px', marginBottom: '14px' }}>
           Pantau sisa cicilan yang harus dibayar, serta uang yang sedang dipinjam orang lain.
         </p>
+        <button type="button" className="secondary-button" onClick={() => setFormOpen(true)} style={{ marginBottom: '24px' }}>
+          <Plus size={15} /> Tambah Catatan Utang / Piutang
+        </button>
 
-        {/* Form Tambah Cicilan/KPR/Piutang */}
-        <form onSubmit={handleAddDebt} className="workspace-form house-entry-form" style={{ marginBottom: '24px' }}>
+        {/* Form Tambah Cicilan/KPR/Piutang — tampil sebagai modal */}
+        {formOpen && (
+          <Modal title="Tambah Utang / Piutang" subtitle="Catat cicilan, KPR, pinjaman, atau uang yang dipinjam orang lain." onClose={() => setFormOpen(false)}>
+            <form onSubmit={handleAddDebt} className="workspace-form house-entry-form">
           <div className="form-field">
             <label htmlFor="debt-title">Nama Catatan</label>
             <input
@@ -336,7 +348,9 @@ export function DebtReportsWorkspace() {
           <button type="submit" className="primary-button" style={{ width: '100%' }}>
             <Plus size={16} /> Simpan Pinjaman / KPR
           </button>
-        </form>
+            </form>
+          </Modal>
+        )}
 
         {/* List Cicilan & Piutang Aktif */}
         <div className="house-records">
@@ -347,40 +361,38 @@ export function DebtReportsWorkspace() {
               .filter(p => p.debtId === d.id)
               .sort((a, b) => b.paidDate.localeCompare(a.paidDate))
             return (
-              <article className="house-record" key={d.id} style={{ padding: '18px 20px', borderRadius: '22px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <span className="badge" style={{ fontSize: '10px', textTransform: 'uppercase', marginBottom: '6px', display: 'inline-block', color: isPiutang ? '#22c55e' : undefined, borderColor: isPiutang ? 'rgba(34,197,94,0.3)' : undefined }}>
-                      {isPiutang ? 'PIUTANG (ASET KITA)' : d.type.toUpperCase()} · {d.lenderOrBorrower}
-                    </span>
-                    <h3 style={{ fontSize: '15px', fontWeight: 650, margin: '2px 0 4px' }}>{d.title}</h3>
-                    <p className="small muted">
-                      {isPiutang ? 'Belum kembali: ' : 'Sisa utang: '}
-                      <strong style={{ color: isPiutang ? '#22c55e' : '#ef4444' }}>{money(d.remainingAmount)}</strong> / {money(d.totalAmount)} ({pctPaid}% {isPiutang ? 'sudah dikembalikan' : 'lunas'})
-                    </p>
-                    {d.monthlyPayment && (
-                      <p className="small" style={{ marginTop: '4px' }}>
-                        {isPiutang ? 'Cicilan pengembalian: ' : 'Angsuran: '}<strong>{money(d.monthlyPayment)}/bulan</strong> {d.dueDay ? `(Tiap tgl ${d.dueDay})` : ''}
-                      </p>
-                    )}
-                    {d.tenorMonths ? (
-                      <p className="small" style={{ marginTop: '4px' }}>
-                        Tenor: <strong>{d.tenorMonths} bulan</strong>{d.remainingMonths != null ? <> · Sisa tenor: <strong>{d.remainingMonths} bulan</strong></> : ''}
-                      </p>
-                    ) : null}
-                    {d.notes && <p className="small muted" style={{ marginTop: '4px', fontStyle: 'italic' }}>"{d.notes}"</p>}
-                  </div>
+              <article className="house-record" key={d.id} style={{ padding: '20px', borderRadius: '20px', border: '1px solid var(--workspace-border)', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                  <span className="badge" style={{ fontSize: '10px', textTransform: 'uppercase', display: 'inline-block', color: isPiutang ? '#22c55e' : undefined, borderColor: isPiutang ? 'rgba(34,197,94,0.3)' : undefined }}>
+                    {isPiutang ? 'PIUTANG (ASET KITA)' : d.type.toUpperCase()} · {d.lenderOrBorrower}
+                  </span>
                   <button
                     type="button"
-                    className="text-button"
+                    className="icon-button"
+                    aria-label={`Hapus catatan ${d.title}`}
                     onClick={() => store.deleteDebt(d.id)}
-                    style={{ color: 'var(--muted)' }}
+                    style={{ color: 'var(--muted)', width: '36px', height: '36px', margin: '-6px -6px 0 0' }}
                   >
                     <Trash2 size={15} />
                   </button>
                 </div>
+                <h3 style={{ fontSize: '16px', fontWeight: 650, margin: '6px 0 2px' }}>{d.title}</h3>
+                <p className="small muted" style={{ margin: 0 }}>{isPiutang ? 'Belum kembali' : 'Sisa utang'}</p>
+                <p style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.5px', margin: '2px 0 10px', color: isPiutang ? '#22c55e' : '#ef4444', fontVariantNumeric: 'tabular-nums' }}>{money(d.remainingAmount)}</p>
+                <Meter value={pctPaid} label={`Kemajuan ${isPiutang ? 'pengembalian' : 'pelunasan'} ${d.title}: ${pctPaid}%`} />
+                <p className="small muted" style={{ marginTop: '8px' }}>
+                  {pctPaid}% {isPiutang ? 'sudah dikembalikan' : 'lunas'} · dari total {money(d.totalAmount)}
+                </p>
+                {(d.monthlyPayment || d.tenorMonths) && (
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '12px' }}>
+                    {d.monthlyPayment && <span style={chipStyle}><Wallet size={12} /> {money(d.monthlyPayment)}/bulan</span>}
+                    {d.monthlyPayment && d.dueDay ? <span style={chipStyle}><CalendarDays size={12} /> Tiap tgl {d.dueDay}</span> : null}
+                    {d.tenorMonths ? <span style={chipStyle}><Clock size={12} /> Tenor {d.tenorMonths} bln{d.remainingMonths != null ? ` · sisa ${d.remainingMonths} bln` : ''}</span> : null}
+                  </div>
+                )}
+                {d.notes && <p className="small muted" style={{ marginTop: '10px', fontStyle: 'italic' }}>"{d.notes}"</p>}
                 {d.remainingAmount > 0 && mirrorId !== d.id && (
-                  <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border, rgba(0,0,0,0.08))', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       className="secondary-button"
