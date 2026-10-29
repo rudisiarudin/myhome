@@ -196,14 +196,14 @@ export function DebtReportsWorkspace() {
 
         {/* Form Tambah Cicilan/KPR/Piutang — tampil sebagai modal */}
         {formOpen && (
-          <Modal title="Tambah Utang / Piutang" subtitle="Catat cicilan, KPR, pinjaman, atau uang yang dipinjam orang lain." onClose={() => setFormOpen(false)}>
-            <form onSubmit={handleAddDebt} className="workspace-form house-entry-form">
+          <Modal title="Tambah Utang / Piutang" subtitle="Satu catatan untuk satu cicilan atau pinjaman." onClose={() => setFormOpen(false)}>
+            <form onSubmit={handleAddDebt} className="workspace-form house-entry-form debt-form-compact">
           <div className="form-field">
             <label htmlFor="debt-title">Nama Catatan</label>
             <input
               id="debt-title"
               required
-              placeholder="Misalnya, KPR Mandiri, Piutang Teman Kantor..."
+              placeholder="Misalnya, KPR Mandiri"
               value={title}
               onChange={e => setTitle(e.target.value)}
             />
@@ -246,13 +246,13 @@ export function DebtReportsWorkspace() {
               <input
                 id="debt-rem"
                 type="number"
-                placeholder="Kosongkan jika masih utuh"
+                placeholder="Kosongkan jika utuh"
                 value={remainingAmount}
                 onChange={e => setRemainingAmount(e.target.value)}
               />
             </div>
           </div>
-          <p className="small muted" style={{ margin: '-6px 0 0' }}>
+          <p className="small muted" style={{ margin: '-4px 0 12px', fontSize: '11px' }}>
             Cukup isi salah satu dari Total / Sisa — kolom yang kosong akan mengikuti angka yang diisi.
           </p>
 
@@ -299,7 +299,7 @@ export function DebtReportsWorkspace() {
                 id="debt-rem-months"
                 type="number"
                 min="0"
-                placeholder="Kosongkan jika sama dengan tenor"
+                placeholder="Sama dengan tenor"
                 value={remainingMonths}
                 onChange={e => setRemainingMonths(e.target.value)}
               />
@@ -310,7 +310,7 @@ export function DebtReportsWorkspace() {
             <label htmlFor="debt-notes">Catatan (Bunga / Lainnya)</label>
             <input
               id="debt-notes"
-              placeholder="Contoh: Bunga fixed 3 tahun pertama"
+              placeholder="Bunga fixed 3 tahun pertama"
               value={notes}
               onChange={e => setNotes(e.target.value)}
             />
@@ -370,7 +370,7 @@ export function DebtReportsWorkspace() {
                     type="button"
                     className="icon-button"
                     aria-label={`Hapus catatan ${d.title}`}
-                    onClick={() => store.deleteDebt(d.id)}
+                    onClick={() => store.setEditor({ type: 'confirm', title: `Hapus catatan "${d.title}"?`, description: 'Catatan ini akan dihapus permanen beserta seluruh riwayat pembayaran/pengembaliannya. Tindakan ini tidak bisa dibatalkan.', confirm: () => store.deleteDebt(d.id) })}
                     style={{ color: 'var(--muted)', width: '36px', height: '36px', margin: '-6px -6px 0 0' }}
                   >
                     <Trash2 size={15} />
@@ -396,7 +396,7 @@ export function DebtReportsWorkspace() {
                     <button
                       type="button"
                       className="secondary-button"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flex: '1 1 0' }}
                       onClick={() => store.setEditor({ type: 'debtPay', id: d.id })}
                     >
                       <Wallet size={15} /> {isPiutang ? 'Catat Pengembalian' : 'Catat Pembayaran'}
@@ -405,7 +405,7 @@ export function DebtReportsWorkspace() {
                       <button
                         type="button"
                         className="secondary-button"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flex: '1 1 0' }}
                         onClick={() => openMirrorForm(d)}
                       >
                         <CreditCard size={15} /> Buat Utang Pasangan
@@ -455,7 +455,7 @@ export function DebtReportsWorkspace() {
                             type="button"
                             className="text-button"
                             aria-label={`Hapus riwayat ${isPiutang ? 'pengembalian' : 'pembayaran'} ${money(p.amount)}`}
-                            onClick={() => void store.deleteDebtPayment(d, p)}
+                            onClick={() => store.setEditor({ type: 'confirm', title: `Hapus riwayat ${isPiutang ? 'pengembalian' : 'pembayaran'} ini?`, description: `Nominal ${money(p.amount)} akan dikembalikan ke sisa ${isPiutang ? 'piutang' : 'utang'} "${d.title}".`, confirm: () => store.deleteDebtPayment(d, p) })}
                             style={{ color: 'var(--muted)', display: 'inline-flex' }}
                           >
                             <Trash2 size={14} />
