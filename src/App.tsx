@@ -547,7 +547,7 @@ export default function App() {
       </div>}
 
       <footer className="demo-note">{store.isPreview ? 'Pratinjau dengan data contoh · Semua perubahan data hilang saat halaman dimuat ulang. Tidak ada koneksi bank atau database.' : 'Catatan rumah disimpan di Supabase. Pencatatan ini tidak terhubung ke bank dan tidak memindahkan uang sungguhan.'}</footer>
-      <nav className="bottom-nav" aria-label="Navigasi utama">{tabs.slice(0, 2).map(renderNavButton)}<button className="nav-plus" aria-label="Catat pengeluaran" onClick={() => setEditor({ type: 'transaction', kind: 'expense' })}><Plus size={24} /></button>{tabs.slice(2).map(renderNavButton)}</nav>
+      <nav className="bottom-nav" aria-label="Navigasi utama">{tabs.map(renderNavButton)}</nav>
 
       <HouseholdDialogs role={currentProfile.role} />
       <AgentAssistant open={assistantOpen} onOpenChange={setAssistantOpen} />
