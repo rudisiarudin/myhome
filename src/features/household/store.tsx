@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { bills as sampleBills, contacts as sampleContacts, documents as sampleDocuments, goals as sampleGoals, initialExpenses, schedule } from '../../data/demo'
 import { dateKey, TODAY, isDateKey, isMoney, isPhoneNumber, makeId, money, normalizePhone, validateTransaction, validateTransactionDeletion, walletBalance } from './model'
-import type { BudgetSettings, DebtLoan, DebtPayment, HouseholdBill, HouseholdContact, HouseholdDocument, HouseholdEvent, HouseholdState, HouseholdWallet, JournalMemory, Person, SavingGoal, Transaction, TransactionKind } from './model'
+import type { BudgetSettings, DebtLoan, DebtPayment, HouseholdBill, HouseholdContact, HouseholdDocument, HouseholdEvent, HouseholdState, HouseholdWallet, InvestmentHolding, JournalMemory, Person, SavingGoal, Transaction, TransactionKind } from './model'
 import { HouseholdContext } from './context'
 import { dateIdeas, foodIdeas, initialShopping } from '../../data/demo'
 import type { ShoppingItem } from '../../types'
@@ -59,6 +59,10 @@ function initialState(): HouseholdState {
     memories: [
       { id: 'm1', title: 'Anniversary Pernikahan', date: '2026-09-12', note: 'Dinner romantis berdua & evaluasi perjalanan rumah tangga.', category: 'milestone', recordedBy: 'suami' },
       { id: 'm2', title: 'Weekend Getaway Puncak', date: '2026-10-04', note: 'Staycation dingin, masak mie instan bareng & ngopi santai.', category: 'liburan', recordedBy: 'istri' },
+    ],
+    investments: [
+      { id: 'inv1', kind: 'saham', symbol: 'BBCA', name: 'Bank Central Asia', quantity: 100, avgPrice: 8500 },
+      { id: 'inv2', kind: 'crypto', symbol: 'BTC', name: 'Bitcoin', quantity: 0.005, avgPrice: 1250000000 },
     ],
   }
 }
@@ -296,6 +300,21 @@ function useStore() {
     return null
   }
 
+  const saveInvestment = async (holding: InvestmentHolding) => {
+    if (!holding.symbol.trim()) return 'Tulis kode asetnya terlebih dahulu.'
+    if (!Number.isFinite(holding.quantity) || holding.quantity <= 0) return 'Jumlah pegangan harus lebih dari 0.'
+    if (!isMoney(holding.avgPrice, true)) return 'Harga beli rata-rata harus berupa rupiah utuh, minimal Rp0.'
+    setState(current => ({ ...current, investments: [...current.investments.filter(item => item.id !== holding.id), { ...holding, symbol: holding.symbol.trim().toUpperCase() }] }))
+    finish('Aset investasi berhasil disimpan dalam pratinjau.')
+    return null
+  }
+
+  const deleteInvestment = async (id: string) => {
+    setState(current => ({ ...current, investments: current.investments.filter(item => item.id !== id) }))
+    finish('Aset investasi dihapus.')
+    return null
+  }
+
   const saveShopping = async (item: ShoppingItem) => { setState(current => ({ ...current, shopping: [item, ...current.shopping.filter(row => row.id !== item.id)] })); return null }
   const deleteShopping = async (id: string) => { setState(current => ({ ...current, shopping: current.shopping.filter(row => row.id !== id) })); return null }
   const saveIdea = async (kind: 'food' | 'date', title: string) => {
@@ -304,7 +323,7 @@ function useStore() {
     return null
   }
   const deleteIdea = async (kind: 'food' | 'date', id: string) => { setState(current => kind === 'food' ? { ...current, foodIdeas: current.foodIdeas.filter(row => row.id !== id) } : { ...current, dateIdeas: current.dateIdeas.filter(row => row.id !== id) }); return null }
-  return { state, editor, setEditor, notice, setNotice, pending: false, isPreview: true, refreshError: '', refreshing: false, refresh: async () => {}, saveTransaction, deleteTransaction, saveWallet, deleteWallet, saveBudget, saveEvent, deleteEvent, toggleEvent, saveBill, deleteBill, payBill, unpayBill, saveGoal, deleteGoal, saveDocument, deleteDocument, saveContact, deleteContact, toggleChore, saveChore, deleteChore, savePlace, deletePlace, saveShopping, deleteShopping, saveIdea, deleteIdea, saveDebt, deleteDebt, saveDebtPayment, deleteDebtPayment, saveMemory, deleteMemory }
+  return { state, editor, setEditor, notice, setNotice, pending: false, isPreview: true, refreshError: '', refreshing: false, refresh: async () => {}, saveTransaction, deleteTransaction, saveWallet, deleteWallet, saveBudget, saveEvent, deleteEvent, toggleEvent, saveBill, deleteBill, payBill, unpayBill, saveGoal, deleteGoal, saveDocument, deleteDocument, saveContact, deleteContact, toggleChore, saveChore, deleteChore, savePlace, deletePlace, saveShopping, deleteShopping, saveIdea, deleteIdea, saveDebt, deleteDebt, saveDebtPayment, deleteDebtPayment, saveMemory, deleteMemory, saveInvestment, deleteInvestment }
 }
 
 type MutationResult = Promise<string | null>
@@ -352,6 +371,8 @@ export interface HouseholdStore {
   deleteDebtPayment: (debt: DebtLoan, payment: DebtPayment) => MutationResult
   saveMemory: (memory: JournalMemory) => MutationResult
   deleteMemory: (id: string) => MutationResult
+  saveInvestment: (holding: InvestmentHolding) => MutationResult
+  deleteInvestment: (id: string) => MutationResult
 }
 
 export function HouseholdProvider({ children }: { children: ReactNode }) {

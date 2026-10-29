@@ -141,6 +141,19 @@ export interface JournalMemory {
   recordedBy: Person
 }
 
+// Satu pegangan yang dipantau di bagian Investasi. quantity dalam lembar
+// untuk saham dan satuan koin (boleh desimal) untuk crypto; avgPrice adalah
+// harga beli rata-rata per lembar/koin dalam rupiah utuh. Harga live tidak
+// disimpan — nilai portofolio selalu dihitung dari harga terbaru.
+export interface InvestmentHolding {
+  id: string
+  kind: 'saham' | 'crypto'
+  symbol: string
+  name: string
+  quantity: number
+  avgPrice: number
+}
+
 export interface HouseholdState {
   wallets: HouseholdWallet[]
   transactions: Transaction[]
@@ -158,6 +171,7 @@ export interface HouseholdState {
   debts: DebtLoan[]
   debtPayments: DebtPayment[]
   memories: JournalMemory[]
+  investments: InvestmentHolding[]
 }
 
 export const money = (value: number) => {
@@ -165,6 +179,9 @@ export const money = (value: number) => {
   return `Rp${value.toLocaleString('id-ID')}`
 }
 export const personName = (value: string) => value === 'suami' ? 'Rudi' : value === 'istri' ? 'Istri' : 'Berdua'
+// Jumlah pegangan: bilangan bulat tampil apa adanya, desimal crypto tampil
+// sampai 8 angka di belakang koma tanpa nol menggantung.
+export const formatQuantity = (value: number) => value.toLocaleString('id-ID', { maximumFractionDigits: 8 })
 export const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 export const dateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 export const TODAY = dateKey(new Date())

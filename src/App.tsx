@@ -12,6 +12,7 @@ import { householdShortNames, shortName } from './features/account/display'
 import { BudgetWorkspace, CalendarWorkspace, GoalsWorkspace, TransactionList } from './features/household/Workspace'
 import { HouseWorkspace } from './features/household/HouseWorkspace'
 import { DebtReportsWorkspace } from './features/household/DebtReportsWorkspace'
+import { InvestmentsWorkspace } from './features/household/InvestmentsWorkspace'
 import { HouseholdDialogs } from './features/household/Dialogs'
 import { AgentAssistant } from './features/household/AgentAssistant'
 import './App.css'
@@ -345,7 +346,7 @@ export default function App() {
   const [theme, setTheme] = useTheme()
   useEffect(() => { document.documentElement.dataset.persona = currentProfile.role }, [currentProfile.role])
   const [activeTab, setActiveTab] = useState<Tab>('today')
-  const [budgetSubTab, setBudgetSubTab] = useState<'budget' | 'debts'>('budget')
+  const [budgetSubTab, setBudgetSubTab] = useState<'budget' | 'debts' | 'investments'>('budget')
   const [coupleSubTab, setCoupleSubTab] = useState<'decision' | 'shopping' | 'goals' | 'places' | 'journal'>('decision')
   const [houseSubTab, setHouseSubTab] = useState<'bills' | 'vault' | 'contacts' | 'chores'>('bills')
   const shoppingList = state.shopping
@@ -528,11 +529,11 @@ export default function App() {
 
         {activeTab === 'budget' && <>
           <div className="segmented-control" role="group" aria-label="Bagian keuangan">
-            {([{ key: 'budget', label: 'Kas & Anggaran' }, { key: 'debts', label: 'KPR & Neraca' }] as const).map(tab => (
+            {([{ key: 'budget', label: 'Kas & Anggaran' }, { key: 'debts', label: 'KPR & Neraca' }, { key: 'investments', label: 'Investasi' }] as const).map(tab => (
               <button key={tab.key} aria-pressed={budgetSubTab === tab.key} onClick={() => setBudgetSubTab(tab.key)}>{tab.label}</button>
             ))}
           </div>
-          {budgetSubTab === 'budget' ? <BudgetWorkspace /> : <DebtReportsWorkspace />}
+          {budgetSubTab === 'budget' ? <BudgetWorkspace /> : budgetSubTab === 'debts' ? <DebtReportsWorkspace /> : <InvestmentsWorkspace />}
         </>}
         {activeTab === 'calendar' && <CalendarWorkspace />}
 
