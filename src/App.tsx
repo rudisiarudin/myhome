@@ -366,11 +366,12 @@ export default function App() {
   const piutangList = state.debts.filter(d => d.type === 'piutang')
   const totalPiutang = piutangList.reduce((sum, d) => sum + d.remainingAmount, 0)
   const totalPiutangAwal = piutangList.reduce((sum, d) => sum + d.totalAmount, 0)
-  // Piutang kartu kredit tidak masuk Kekayaan Bersih: dananya tagihan kartu, bukan uang kita.
-  const totalPiutangBersih = piutangList.filter(d => !d.creditCardFunded).reduce((sum, d) => sum + d.remainingAmount, 0)
-  const totalPiutangKartuKredit = piutangList.filter(d => d.creditCardFunded).reduce((sum, d) => sum + d.remainingAmount, 0)
   const totalUtang = state.debts.filter(d => d.type !== 'piutang').reduce((sum, d) => sum + d.remainingAmount, 0)
-  const netWorth = totalWallets + totalSavings + totalPiutangBersih - totalUtang
+  // Kekayaan Bersih = isi dompet + tabungan saja, bersih dari utang (keputusan
+  // Ketua 29 Okt 2026 malam: "dompet saja selamanya"). Piutang — tunai maupun
+  // kartu kredit — tidak pernah dihitung di angka ini; piutang tetap dipantau
+  // lewat kartu Piutang beredar dan Neraca.
+  const netWorth = totalWallets + totalSavings - totalUtang
   const pendingShopping = shoppingList.filter(item => !item.isBought)
 
   useEffect(() => {
@@ -474,7 +475,7 @@ export default function App() {
           <Waves />
           <div className="row-between"><span className="hero-label-wrap"><span className="hero-label">Kekayaan Bersih</span><button type="button" className="hero-eye" onClick={toggleHideAmounts} aria-label={hideAmounts ? 'Tampilkan nominal kekayaan bersih' : 'Sembunyikan nominal kekayaan bersih'} aria-pressed={hideAmounts}>{hideAmounts ? <EyeOff size={15} /> : <Eye size={15} />}</button></span><button className="hero-link" onClick={() => { setBudgetSubTab('debts'); navigate('budget') }}>KPR &amp; Neraca<ChevronRight size={14} /></button></div>
           <div className="hero-total">{hideAmounts ? 'Rp••••••••' : money(netWorth)}</div>
-          <p className="hero-sub">Dompet + tabungan + piutang, bersih dari semua utang{totalPiutangKartuKredit > 0 ? ' · piutang kartu kredit tidak dihitung' : ''}</p>
+          <p className="hero-sub">Dompet + tabungan, bersih dari semua utang · piutang tidak dihitung</p>
           <div className="hero-wallets">{state.wallets.map(w => <span key={w.id} className="hero-chip">{w.name} · {hideAmounts ? 'Rp••••' : money(walletBalance(w, state.transactions))}</span>)}</div>
         </section>
 
