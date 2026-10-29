@@ -95,7 +95,7 @@ export function ConnectedHouseholdProvider({ client, householdId, children }: {
     {refreshError && <button className="primary-button" disabled={refreshing} onClick={() => void refresh()}>Coba muat ulang</button>}
   </section>
 
-  const debtData = (debt: DebtLoan) => ({ title: debt.title, type: debt.type, lender_or_borrower: debt.lenderOrBorrower, total_amount: debt.totalAmount, remaining_amount: debt.remainingAmount, monthly_payment: debt.monthlyPayment ?? null, due_day: debt.dueDay ?? null, tenor_months: debt.tenorMonths ?? null, remaining_months: debt.remainingMonths ?? null, notes: debt.notes ?? '' })
+  const debtData = (debt: DebtLoan) => ({ title: debt.title, type: debt.type, lender_or_borrower: debt.lenderOrBorrower, total_amount: debt.totalAmount, remaining_amount: debt.remainingAmount, monthly_payment: debt.monthlyPayment ?? null, due_day: debt.dueDay ?? null, tenor_months: debt.tenorMonths ?? null, remaining_months: debt.remainingMonths ?? null, credit_card_funded: debt.creditCardFunded ?? false, notes: debt.notes ?? '' })
   const existing = (items: { id: string }[], id: string) => items.some(item => item.id === id) ? id : undefined
   const financialId = (items: { id: string }[], id: string) => ({ id: existing(items, id) })
   const remove = (table: string, id: string) => run(() => repository.remove(table, id), 'Catatan dihapus.')

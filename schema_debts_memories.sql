@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.debts (
     due_day INT,
     tenor_months INT,
     remaining_months INT,
+    credit_card_funded BOOLEAN NOT NULL DEFAULT FALSE,
     notes TEXT DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc', now())
