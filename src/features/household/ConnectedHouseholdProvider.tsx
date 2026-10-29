@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { errorMessage } from '../../lib/errors'
 import { HouseholdContext } from './context'
 import type { Editor, HouseholdStore } from './store'
-import type { DebtLoan, HouseholdState } from './model'
+import type { DebtLoan, HouseholdState, InvestmentHolding } from './model'
 import { TODAY } from './model'
 import { createHouseholdRepository } from './repository'
 
@@ -96,6 +96,7 @@ export function ConnectedHouseholdProvider({ client, householdId, children }: {
   </section>
 
   const debtData = (debt: DebtLoan) => ({ title: debt.title, type: debt.type, lender_or_borrower: debt.lenderOrBorrower, total_amount: debt.totalAmount, remaining_amount: debt.remainingAmount, monthly_payment: debt.monthlyPayment ?? null, due_day: debt.dueDay ?? null, tenor_months: debt.tenorMonths ?? null, remaining_months: debt.remainingMonths ?? null, credit_card_funded: debt.creditCardFunded ?? false, notes: debt.notes ?? '' })
+  const investmentData = (holding: InvestmentHolding) => ({ kind: holding.kind, symbol: holding.symbol, name: holding.name, quantity: holding.quantity, avg_price: holding.avgPrice })
   const existing = (items: { id: string }[], id: string) => items.some(item => item.id === id) ? id : undefined
   const financialId = (items: { id: string }[], id: string) => ({ id: existing(items, id) })
   const remove = (table: string, id: string) => run(() => repository.remove(table, id), 'Catatan dihapus.')
@@ -145,6 +146,8 @@ export function ConnectedHouseholdProvider({ client, householdId, children }: {
     }, 'Riwayat pembayaran dihapus. Sisa dikembalikan seperti semula.'),
     saveMemory: memory => run(() => repository.save('memories', { title: memory.title, date: memory.date, note: memory.note, category: memory.category, recorded_by: memory.recordedBy }, existing(state.memories, memory.id))),
     deleteMemory: id => remove('memories', id),
+    saveInvestment: holding => run(() => repository.save('investments', investmentData(holding), existing(state.investments, holding.id)), 'Aset investasi tersimpan.'),
+    deleteInvestment: id => remove('investments', id),
   }
   return <HouseholdContext.Provider value={value}>{children}</HouseholdContext.Provider>
 }

@@ -236,3 +236,15 @@
   .calendar-workspace .calendar-content .agenda-card { padding-left: 14px; padding-right: 14px; }
   .calendar-workspace .calendar-content .agenda-card h3 { font-size: 16px; }
 }
+
+/* Bagian Investasi: ringkasan portofolio + kartu aset. */
+.inv-summary-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; font-size: 12px; }
+.inv-summary-row strong { font-variant-numeric: tabular-nums; }
+.inv-summary-row .secondary-button { margin-left: auto; }
+.inv-record { padding-top: 6px; }
+.inv-title { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+.inv-title strong { font-size: 15px; letter-spacing: .2px; }
+.inv-price-row { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
+.inv-price-row strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+.inv-detail { margin: 2px 0 10px; line-height: 1.7; }
+.inv-detail strong { font-variant-numeric: tabular-nums; }

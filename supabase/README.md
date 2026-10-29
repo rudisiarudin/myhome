@@ -2,6 +2,8 @@
 
 Tambahan untuk tab **KPR & Neraca**: jalankan [`debts.sql`](./debts.sql) setelah instalasi dasar. Petunjuk, field form, perhitungan neraca, dan batas integrasinya ada di [`DEBTS.md`](./DEBTS.md).
 
+Tambahan untuk bagian **Investasi**: jalankan [`investments.sql`](./investments.sql) setelah instalasi dasar. Petunjuk dan fieldnya ada di [`INVESTMENTS.md`](./INVESTMENTS.md).
+
 ## Cara menjalankan
 
 1. Buka proyek Supabase, **SQL Editor → New query**.

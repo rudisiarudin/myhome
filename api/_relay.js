@@ -51,7 +51,8 @@ function headerValue(req, name) {
 
 // Token divalidasi langsung ke Supabase Auth: token sesi yang sah akan
 // dijawab 200 beserta data user; token kosong/palsu/kedaluwarsa dijawab 401.
-async function isValidSession(config, token) {
+// Diekspor agar fungsi server lain (mis. api/prices.js) memakai gerbang yang sama.
+export async function isValidSession(config, token) {
   try {
     const response = await fetch(`${config.supabaseUrl}/auth/v1/user`, {
       headers: { apikey: config.supabaseAnonKey, Authorization: `Bearer ${token}` },

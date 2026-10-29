@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { UserProfile } from '../../types'
-import type { HouseholdState, Person, Transaction, HouseholdWallet, HouseholdDocument, HouseholdContact, WishlistPlace } from './model'
+import type { HouseholdState, Person, Transaction, HouseholdWallet, HouseholdDocument, HouseholdContact, WishlistPlace, InvestmentHolding } from './model'
 
 export type Row = Record<string, unknown>
 const text = (row: Row, key: string) => String(row[key] ?? '')
@@ -58,7 +58,19 @@ export function decodeHousehold(rows: Record<string, Row[]>): HouseholdState {
       note: text(r, 'note'),
       category: text(r, 'category') as any,
       recordedBy: text(r, 'recorded_by') as Person
-    }))
+    })),
+    investments: (rows.investments ?? []).map(r => {
+      const quantity = Number(r.quantity)
+      if (!Number.isFinite(quantity) || quantity < 0) throw new Error('Jumlah pegangan investasi di database tidak dapat dibaca.')
+      return {
+        id: text(r, 'id'),
+        kind: text(r, 'kind') as InvestmentHolding['kind'],
+        symbol: text(r, 'symbol'),
+        name: text(r, 'name'),
+        quantity,
+        avgPrice: number(r, 'avg_price')
+      }
+    })
   }
 }
 
@@ -79,7 +91,12 @@ export function createHouseholdRepository(client: SupabaseClient, householdId: s
       const entries = await Promise.all(tables.map(async table => [table, await readAll(table)] as const))
       const { data, error } = await db.from('household_budgets').select('*').eq('household_id', householdId).single()
       if (error) throw error
-      return decodeHousehold({ ...Object.fromEntries(entries), household_budgets: [data] })
+      // Tabel investments adalah tambahan opsional (supabase/investments.sql).
+      // Selama script-nya belum dijalankan, muat sebagai daftar kosong supaya
+      // seluruh aplikasi tetap berjalan — bagian Investasi saja yang kosong.
+      let investmentRows: Row[] = []
+      try { investmentRows = await readAll('investments') } catch { investmentRows = [] }
+      return decodeHousehold({ ...Object.fromEntries(entries), household_budgets: [data], investments: investmentRows })
     },
     async saveFinancial(entity: string, data: Row) {
       const { error } = await db.rpc(`save_${entity}`, { p_household_id: householdId, p_data: data })
