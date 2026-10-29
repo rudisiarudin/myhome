@@ -343,6 +343,7 @@ export default function App() {
   const numberShortcuts = bills.filter(bill => bill.customerNumber.trim()).slice(0, 2)
   const schedule = state.events
   const [theme, setTheme] = useTheme()
+  useEffect(() => { document.documentElement.dataset.persona = currentProfile.role }, [currentProfile.role])
   const [activeTab, setActiveTab] = useState<Tab>('today')
   const [budgetSubTab, setBudgetSubTab] = useState<'budget' | 'debts'>('budget')
   const [coupleSubTab, setCoupleSubTab] = useState<'decision' | 'shopping' | 'goals' | 'places' | 'journal'>('decision')
