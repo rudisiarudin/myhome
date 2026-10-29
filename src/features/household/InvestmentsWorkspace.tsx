@@ -18,6 +18,9 @@ const COINGECKO_IDS: Record<string, string> = {
   XLM: 'stellar', NEAR: 'near', APT: 'aptos', ARB: 'arbitrum',
   OP: 'optimism', INJ: 'injective-protocol', SUI: 'sui', PEPE: 'pepe',
   SHIB: 'shiba-inu', AVAX: 'avalanche-2', MATIC: 'matic-network', POL: 'polygon-ecosystem-token',
+  // Wajib eksplisit: id CoinGecko 'allo' adalah token LAIN (harga jauh
+  // berbeda); Allora yang benar id-nya 'allora'.
+  ALLO: 'allora',
 }
 
 interface Quote { price: number; changePct: number }
