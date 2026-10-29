@@ -664,6 +664,15 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
   .mini-card .allowance-number span { font-size: 11px; }
 }
 
+/* Koreksi bocoran gaya navbar lama di HP: media query desain lama masih
+   menimpa pill mengambang — border samping/bawah hilang (border-width
+   1px 0 0) dan label tab menyusut ke 8px. Kembalikan border penuh,
+   beri jarak aman dari area gestur Android, dan label yang terbaca. */
+@media (max-width: 560px) {
+  .app-shell > .bottom-nav { border-width: 1px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .nav-button > span { font-size: 10px; }
+}
+
 /* Redesign pastel tahap 2.1: rapikan kartu mini (kolom sempit di HP). */
 .today-grid { align-items: stretch; }
 .mini-card { display: flex; flex-direction: column; }
