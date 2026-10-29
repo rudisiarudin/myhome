@@ -10,11 +10,37 @@
 // Balasan:   { quotes: { BBCA: { price, prevClose, changePct, name } } }
 // Simbol yang gagal dibaca tidak dimasukkan ke balasan (klien menampilkan
 // tanda "belum ada harga"), bukan menggagalkan seluruh permintaan.
+//
+// Mode riwayat untuk grafik: GET /api/prices?history=BBCA&range=1mo
+// Balasan:   { symbol: 'BBCA', points: [[unixDetik, harga], ...] }
+// range yang didukung: 1d, 5d, 1mo, 6mo, 1y (interval dipilih server).
 
 import { isValidSession, sendJson, serverConfig } from './_relay.js'
 
 const CODE_PATTERN = /^[A-Z0-9]{1,10}$/
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+// Pasangan range -> interval Yahoo. Interval dipilih agar jumlah titik
+// cukup halus untuk digambar (puluhan sampai ratusan titik per grafik).
+const HISTORY_INTERVALS = { '1d': '15m', '5d': '30m', '1mo': '1d', '6mo': '1d', '1y': '1wk' }
+
+async function fetchHistory(code, range) {
+  const interval = HISTORY_INTERVALS[range] ?? '1d'
+  const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${code}.JK?range=${range}&interval=${interval}`, {
+    headers: { 'User-Agent': BROWSER_UA, Accept: 'application/json' },
+  })
+  if (!response.ok) return []
+  const data = await response.json()
+  const result = data?.chart?.result?.[0]
+  const timestamps = Array.isArray(result?.timestamp) ? result.timestamp : []
+  const closes = Array.isArray(result?.indicators?.quote?.[0]?.close) ? result.indicators.quote[0].close : []
+  const points = []
+  for (let index = 0; index < timestamps.length; index += 1) {
+    const close = Number(closes[index])
+    const time = Number(timestamps[index])
+    if (Number.isFinite(close) && close > 0 && Number.isFinite(time)) points.push([time, close])
+  }
+  return points
+}
 
 async function fetchQuote(code) {
   const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${code}.JK?range=1d&interval=1d`, {
@@ -56,6 +82,18 @@ export default async function handler(req, res) {
     return
   }
   const url = new URL(req.url || '', 'http://localhost')
+  const historyCode = (url.searchParams.get('history') || '').trim().toUpperCase()
+  if (historyCode) {
+    if (!CODE_PATTERN.test(historyCode)) {
+      sendJson(res, 400, { error: 'Kode emiten tidak sah.', code: 'bad_symbol' })
+      return
+    }
+    const range = HISTORY_INTERVALS[url.searchParams.get('range') || ''] ? (url.searchParams.get('range') || '') : '1mo'
+    let points = []
+    try { points = await fetchHistory(historyCode, range) } catch { points = [] }
+    sendJson(res, 200, { symbol: historyCode, points })
+    return
+  }
   const codes = [...new Set((url.searchParams.get('symbols') || '')
     .split(',')
     .map(code => code.trim().toUpperCase())
