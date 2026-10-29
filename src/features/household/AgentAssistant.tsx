@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import { Bot, Send, SlidersHorizontal, Trash2, X } from 'lucide-react'
 import { useHousehold } from './context'
 import { useAccount } from '../account/context'
@@ -333,6 +333,40 @@ async function askLLM(settings: AgentSettings, state: HouseholdState, history: C
   }
 }
 
+// Perender teks kaya ringan untuk jawaban Asisten: paragraf, daftar,
+// **tebal**, dan `kode`. Sengaja dibuat tangan tanpa menyuntik HTML, supaya
+// jawaban model tampil rapi tapi tetap aman — semua dirender sebagai node
+// React yang dibangun dari string biasa.
+function renderInline(text: string, keyPrefix: string): ReactNode[] {
+  const parts: ReactNode[] = []
+  const pattern = /(\*\*[^*]+\*\*|`[^`]+`)/g
+  let last = 0
+  let idx = 0
+  for (const match of text.matchAll(pattern)) {
+    const at = match.index ?? 0
+    if (at > last) parts.push(text.slice(last, at))
+    const token = match[0]
+    if (token.startsWith('**')) parts.push(<strong key={`${keyPrefix}-${idx}`}>{token.slice(2, -2)}</strong>)
+    else parts.push(<code key={`${keyPrefix}-${idx}`}>{token.slice(1, -1)}</code>)
+    idx += 1
+    last = at + token.length
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return parts
+}
+
+function renderRichText(text: string): ReactNode {
+  const blocks = text.split(/\n{2,}/).map(block => block.trim()).filter(Boolean)
+  return blocks.map((block, bi) => {
+    const lines = block.split('\n')
+    const isList = lines.every(line => /^\s*(?:[-*•]|\d+[.)])\s+/.test(line))
+    if (isList) {
+      return <ul key={bi}>{lines.map((line, li) => <li key={li}>{renderInline(line.replace(/^\s*(?:[-*•]|\d+[.)])\s+/, ''), `b${bi}l${li}`)}</li>)}</ul>
+    }
+    return <p key={bi}>{lines.map((line, li) => <Fragment key={li}>{li > 0 && <br />}{renderInline(line, `b${bi}l${li}`)}</Fragment>)}</p>
+  })
+}
+
 export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const store = useHousehold()
   const { nameForPerson } = useAccount()
@@ -509,9 +543,20 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
           <button type="button" className="danger-text" onClick={clearMessages}><Trash2 size={14} /> Hapus riwayat obrolan</button>
         </form> : <>
           <div className="agent-messages" ref={listRef} aria-live="polite">
-            {messages.map(message => <div key={message.id} className={`agent-msg ${message.role}`}>{message.text}</div>)}
-            {streamText && <div className="agent-msg assistant">{streamText}</div>}
-            {sending && !streamText && <div className="agent-msg assistant agent-typing">Sedang menyusun jawaban…</div>}
+            {messages.map(message => message.role === 'assistant'
+              ? <div key={message.id} className="agent-row">
+                  <span className="agent-avatar" aria-hidden="true"><Bot size={15} /></span>
+                  <div className="agent-msg assistant">{renderRichText(message.text)}</div>
+                </div>
+              : <div key={message.id} className="agent-msg user">{message.text}</div>)}
+            {streamText && <div className="agent-row">
+              <span className="agent-avatar" aria-hidden="true"><Bot size={15} /></span>
+              <div className="agent-msg assistant">{renderRichText(streamText)}<span className="agent-caret" aria-hidden="true" /></div>
+            </div>}
+            {sending && !streamText && <div className="agent-row">
+              <span className="agent-avatar" aria-hidden="true"><Bot size={15} /></span>
+              <div className="agent-msg assistant"><span className="agent-dots" role="status" aria-label="Sedang menyusun jawaban"><span className="agent-dot" /><span className="agent-dot" /><span className="agent-dot" /></span></div>
+            </div>}
           </div>
           <div className="agent-chips" role="group" aria-label="Pertanyaan cepat">
             {QUICK_QUESTIONS.map(question => <button key={question} type="button" className="agent-chip" disabled={sending} onClick={() => void send(question)}>{question}</button>)}
