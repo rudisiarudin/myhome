@@ -21,6 +21,29 @@ import { useTheme } from './theme'
 import { useConnection } from './features/connection/ConnectionContext'
 
 type Tab = 'today' | 'budget' | 'calendar' | 'house' | 'us'
+type BudgetSubTab = 'budget' | 'debts' | 'investments'
+type CoupleSubTab = 'decision' | 'shopping' | 'goals' | 'places' | 'journal'
+type HouseSubTab = 'bills' | 'vault' | 'contacts' | 'chores'
+
+// Posisi halaman terakhir disimpan di perangkat, supaya refresh atau buka
+// ulang kembali ke halaman yang sama — bukan selalu mulai dari Hari ini.
+const NAV_STORAGE_KEY = 'myhome.nav.v1'
+interface NavState { tab: Tab; budget: BudgetSubTab; couple: CoupleSubTab; house: HouseSubTab }
+
+function loadNavState(): NavState {
+  const fallback: NavState = { tab: 'today', budget: 'budget', couple: 'decision', house: 'bills' }
+  try {
+    const parsed = JSON.parse(localStorage.getItem(NAV_STORAGE_KEY) ?? 'null') as Partial<NavState> | null
+    if (!parsed) return fallback
+    const pick = <T extends string>(value: unknown, allowed: readonly T[], fallbackValue: T): T => allowed.includes(value as T) ? (value as T) : fallbackValue
+    return {
+      tab: pick(parsed.tab, ['today', 'budget', 'calendar', 'house', 'us'] as const, fallback.tab),
+      budget: pick(parsed.budget, ['budget', 'debts', 'investments'] as const, fallback.budget),
+      couple: pick(parsed.couple, ['decision', 'shopping', 'goals', 'places', 'journal'] as const, fallback.couple),
+      house: pick(parsed.house, ['bills', 'vault', 'contacts', 'chores'] as const, fallback.house),
+    }
+  } catch { return fallback }
+}
 const money = (value: number) => 'Rp' + value.toLocaleString('id-ID')
 
 function Waves() {
@@ -345,10 +368,14 @@ export default function App() {
   const schedule = state.events
   const [theme, setTheme] = useTheme()
   useEffect(() => { document.documentElement.dataset.persona = currentProfile.role }, [currentProfile.role])
-  const [activeTab, setActiveTab] = useState<Tab>('today')
-  const [budgetSubTab, setBudgetSubTab] = useState<'budget' | 'debts' | 'investments'>('budget')
-  const [coupleSubTab, setCoupleSubTab] = useState<'decision' | 'shopping' | 'goals' | 'places' | 'journal'>('decision')
-  const [houseSubTab, setHouseSubTab] = useState<'bills' | 'vault' | 'contacts' | 'chores'>('bills')
+  const [initialNav] = useState(loadNavState)
+  const [activeTab, setActiveTab] = useState<Tab>(initialNav.tab)
+  const [budgetSubTab, setBudgetSubTab] = useState<BudgetSubTab>(initialNav.budget)
+  const [coupleSubTab, setCoupleSubTab] = useState<CoupleSubTab>(initialNav.couple)
+  const [houseSubTab, setHouseSubTab] = useState<HouseSubTab>(initialNav.house)
+  useEffect(() => {
+    try { localStorage.setItem(NAV_STORAGE_KEY, JSON.stringify({ tab: activeTab, budget: budgetSubTab, couple: coupleSubTab, house: houseSubTab } satisfies NavState)) } catch { /* Penyimpanan tidak tersedia/penuh — posisi halaman cukup tidak diingat. */ }
+  }, [activeTab, budgetSubTab, coupleSubTab, houseSubTab])
   const shoppingList = state.shopping
   const [newShoppingItem, setNewShoppingItem] = useState('')
   const [pickedFood, setPickedFood] = useState<FoodIdea | null>(null)

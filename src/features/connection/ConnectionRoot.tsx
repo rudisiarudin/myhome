@@ -17,6 +17,12 @@ import '../../App.css'
 
 const App = lazy(() => import('../../App'))
 
+// Layar tunggu tanpa teks: cukup logo berdenyut pelan. Pengguna yang sudah
+// masuk tidak perlu membaca "memeriksa sesi / memuat profil" setiap refresh.
+function Splash() {
+  return <div className="app-splash" role="status" aria-label="Memuat Myhome"><AppLogoIcon size={56} /></div>
+}
+
 function AccessShell({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useTheme()
   return <main className="access-shell"><header className="access-header"><a className="wordmark" href="/" aria-label="MyHome"><AppLogoIcon size={22} className="logo-house" />myhome<span className="dot-green">.</span></a><button className="icon-button theme-toggle" aria-label={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>{theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}</button></header><div className="access-content">{children}</div><footer className="access-footer">Satu rumah, catatan bersama.</footer></main>
@@ -141,7 +147,11 @@ function SignedIn({ client, session, onSignOut }: { client: SupabaseClient; sess
     return () => { invalidate(); window.removeEventListener('focus', focus); clearInterval(timer) }
   }, [reload, invalidate])
 
-  if (!identity || !identity.household) return <AccessShell>{error ? <><h1>Koneksi belum siap</h1><p role="alert" className="form-error">{error}</p><button className="primary-button" onClick={() => void reload()}>Coba lagi</button></> : identity ? <Onboarding client={client} identity={identity} session={session} onReload={reload} /> : <p role="status">Memuat profil dan rumah…</p>}<button className="text-button access-link" onClick={() => void onSignOut()}>Keluar akun</button></AccessShell>
+  if (!identity || !identity.household) {
+    if (error) return <AccessShell><h1>Koneksi belum siap</h1><p role="alert" className="form-error">{error}</p><button className="primary-button" onClick={() => void reload()}>Coba lagi</button><button className="text-button access-link" onClick={() => void onSignOut()}>Keluar akun</button></AccessShell>
+    if (!identity) return <Splash />
+    return <AccessShell><Onboarding client={client} identity={identity} session={session} onReload={reload} /><button className="text-button access-link" onClick={() => void onSignOut()}>Keluar akun</button></AccessShell>
+  }
   const household = identity.household
   const currentProfile = identity.members.find(member => member.id === session.user.id)
   if (!currentProfile) return <AccessShell><p role="alert">Profil anggota tidak ditemukan.</p><button className="primary-button" onClick={() => void onSignOut()}>Keluar akun</button></AccessShell>
@@ -162,7 +172,7 @@ function SignedIn({ client, session, onSignOut }: { client: SupabaseClient; sess
   }}>
     <AccountProvider account={currentProfile} members={identity.members}>
       {error && <p className="connection-warning" role="alert">{error}</p>}
-      <ConnectedHouseholdProvider client={client} householdId={String(household.id)}><Suspense fallback={<p className="connection-state" role="status">Membuka rumah…</p>}><App /></Suspense></ConnectedHouseholdProvider>
+      <ConnectedHouseholdProvider client={client} householdId={String(household.id)}><Suspense fallback={<Splash />}><App /></Suspense></ConnectedHouseholdProvider>
     </AccountProvider>
   </ConnectionContext.Provider>
 }
@@ -203,7 +213,7 @@ export function ConnectionRoot() {
     return (
       <AccountProvider>
         <HouseholdProvider>
-          <Suspense fallback={<p className="connection-state" role="status">Membuka rumah…</p>}>
+          <Suspense fallback={<Splash />}>
             <App />
           </Suspense>
         </HouseholdProvider>
@@ -211,6 +221,6 @@ export function ConnectionRoot() {
     )
   }
 
-  if (!ready) return <AccessShell><p role="status">Memeriksa sesi akun…</p></AccessShell>
+  if (!ready) return <Splash />
   return <>{error && <div className="connection-warning" role="alert">{error}<button className="text-button" onClick={() => setError('')}>Tutup pesan</button></div>}{!session || recovery ? <AccessShell><AuthForm client={client} recovery={recovery} /></AccessShell> : <SignedIn key={session.user.id} client={client} session={session} onSignOut={signOut} />}</>
 }
