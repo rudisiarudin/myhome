@@ -80,3 +80,33 @@ svg { flex-shrink: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Redesign pastel: palet mengikuti persona yang masuk (suami/istri).
+   Mode gelap mempertahankan tampilan lama (semua pastel = slate). */
+:root {
+  --page-bg: #EFE9D2;
+  --hero: #A9BE8C;
+  --pastel-2: #F6C445;
+  --pastel-3: #AACBDE;
+  --pastel-4: #F2A65A;
+  --pastel-5: #BFE3D0;
+}
+:root[data-theme="dark"] {
+  --page-bg: #111216;
+  --hero: #262733;
+  --pastel-2: #262733;
+  --pastel-3: #262733;
+  --pastel-4: #262733;
+  --pastel-5: #262733;
+}
+:root:not([data-theme="dark"])[data-persona="istri"] {
+  --page-bg: #F7E8DF;
+  --hero: #F2A7BB;
+  --pastel-2: #C9BCE8;
+  --pastel-3: #F8CFA9;
+  --pastel-4: #BFE3D0;
+  --pastel-5: #F6C445;
+  --lavender: #F9E4EA;
+  --focus: #8A5A78;
+}
+:root:not([data-theme="dark"]) { background: var(--page-bg); }
