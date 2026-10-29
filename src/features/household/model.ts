@@ -189,7 +189,10 @@ export function goalBalance(goal: SavingGoal, transactions: Transaction[]): numb
 }
 
 export function spentIn(transactions: Transaction[], period: string, pocket?: Transaction['pocket']): number {
-  return transactions.filter(entry => entry.kind === 'expense' && entry.date.startsWith(period) && (!pocket || entry.pocket === pocket)).reduce((sum, entry) => sum + entry.amount, 0)
+  // Entri berkategori 'penyesuaian' adalah penyamaan saldo dompet (dari
+  // screenshot m-banking), bukan belanja — tidak mengurangi anggaran harian,
+  // bulanan, maupun uang saku.
+  return transactions.filter(entry => entry.kind === 'expense' && entry.category !== 'penyesuaian' && entry.date.startsWith(period) && (!pocket || entry.pocket === pocket)).reduce((sum, entry) => sum + entry.amount, 0)
 }
 
 export function validateTransaction(entry: Transaction, state: HouseholdState): string | null {
