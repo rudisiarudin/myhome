@@ -303,7 +303,7 @@ function useStore() {
   const saveInvestment = async (holding: InvestmentHolding) => {
     if (!holding.symbol.trim()) return 'Tulis kode asetnya terlebih dahulu.'
     if (!Number.isFinite(holding.quantity) || holding.quantity <= 0) return 'Jumlah pegangan harus lebih dari 0.'
-    if (!isMoney(holding.avgPrice, true)) return 'Harga beli rata-rata harus berupa rupiah utuh, minimal Rp0.'
+    if (!Number.isFinite(holding.avgPrice) || holding.avgPrice < 0) return 'Harga beli rata-rata tidak valid, minimal Rp0 (desimal boleh).'
     setState(current => ({ ...current, investments: [...current.investments.filter(item => item.id !== holding.id), { ...holding, symbol: holding.symbol.trim().toUpperCase() }] }))
     finish('Aset investasi berhasil disimpan dalam pratinjau.')
     return null

@@ -4,7 +4,7 @@ import { Activity, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-reac
 import { useHousehold } from './context'
 import { formatQuantity, makeId, money } from './model'
 import type { InvestmentHolding } from './model'
-import { Empty, Field, FormEnd, Modal, MoneyInput, RowActions, Section } from './ui'
+import { Empty, Field, FormEnd, Modal, RowActions, Section } from './ui'
 import { supabase } from '../../lib/supabase'
 
 // Pemetaan kode crypto populer ke id CoinGecko. Kode di luar daftar ini
@@ -27,11 +27,20 @@ interface Quote { price: number; changePct: number }
 
 const quoteKey = (holding: InvestmentHolding) => `${holding.kind}:${holding.symbol}`
 
-// Harga satuan: saham selalu rupiah utuh; koin berharga sangat kecil
-// (mis. PEPE < Rp1) butuh desimal agar tidak tampil Rp0.
+// Harga satuan: rupiah utuh tampil tanpa desimal; nilai berdesimal
+// (harga rata-rata seperti 462,13 atau harga koin kecil seperti PEPE < Rp1)
+// tampil dengan desimal secukupnya agar tidak terbulatkan menyesatkan.
 function formatPrice(value: number): string {
-  if (value >= 100) return money(Math.round(value))
+  if (value >= 100 && Number.isInteger(value)) return money(value)
+  if (value >= 100) return `Rp${value.toLocaleString('id-ID', { maximumFractionDigits: 4 })}`
   return `Rp${value.toLocaleString('id-ID', { maximumFractionDigits: value < 1 ? 6 : 2 })}`
+}
+
+// Terima format Indonesia maupun titik desimal: "5.238,7339", "462,13",
+// dan "462.13" semuanya terbaca sebagai angka yang sama.
+function parseDecimal(raw: string): number {
+  const cleaned = raw.replace(/\s/g, '')
+  return Number(cleaned.includes(',') ? cleaned.replace(/\./g, '').replace(',', '.') : cleaned)
 }
 
 function formatPct(value: number): string {
@@ -219,22 +228,27 @@ export function InvestmentsWorkspace() {
     setKind(holding?.kind ?? 'saham')
     setSymbol(holding?.symbol ?? '')
     setName(holding?.name ?? '')
-    setQuantity(holding ? String(holding.quantity).replace('.', ',') : '')
-    setAvgPrice(holding ? String(holding.avgPrice) : '')
+    // Saham tersimpan per lembar; di formulir tampil per lot seperti di
+    // aplikasi sekuritas (1 lot = 100 lembar).
+    setQuantity(holding ? String(holding.kind === 'saham' ? holding.quantity / 100 : holding.quantity).replace('.', ',') : '')
+    setAvgPrice(holding ? String(holding.avgPrice).replace('.', ',') : '')
     setFormError('')
     setFormOpen(true)
   }
 
   const submitForm = async (event: React.FormEvent) => {
     event.preventDefault()
-    const parsedQuantity = Number(quantity.replace(/\s/g, '').replace(',', '.'))
+    const parsedQuantity = parseDecimal(quantity)
+    const parsedAvgPrice = parseDecimal(avgPrice)
+    if (!Number.isFinite(parsedQuantity) || !Number.isFinite(parsedAvgPrice)) { setFormError('Periksa lagi jumlah dan harga beli rata-ratanya.'); return }
     const holding: InvestmentHolding = {
       id: editing?.id ?? makeId(),
       kind,
       symbol: symbol.trim().toUpperCase(),
       name: name.trim(),
-      quantity: parsedQuantity,
-      avgPrice: Number(avgPrice),
+      // Saham diisi per lot, tersimpan per lembar (1 lot = 100 lembar).
+      quantity: kind === 'saham' ? parsedQuantity * 100 : parsedQuantity,
+      avgPrice: parsedAvgPrice,
     }
     const error = await store.saveInvestment(holding)
     if (error) { setFormError(error); return }
@@ -282,7 +296,7 @@ export function InvestmentsWorkspace() {
                 <button type="button" className="text-button inv-chart-hint" onClick={event => { event.stopPropagation(); setDetail(holding) }}><Activity size={13} /> Grafik</button>
               </div>
               <p className="muted small inv-detail">
-                Pegangan {formatQuantity(holding.quantity)} {holding.kind === 'saham' ? 'lembar' : 'koin'} · beli rata-rata {formatPrice(holding.avgPrice)}
+                Pegangan {holding.kind === 'saham' ? <>{formatQuantity(holding.quantity / 100)} lot ({formatQuantity(holding.quantity)} lembar)</> : <>{formatQuantity(holding.quantity)} koin</>} · beli rata-rata {formatPrice(holding.avgPrice)}
                 {value != null && <> · nilai kini <strong>{money(Math.round(value))}</strong></>}
                 {gain != null && <> · {gain >= 0 ? 'untung' : 'rugi'} <strong style={{ color: gain >= 0 ? 'var(--workspace-positive)' : '#c0362c' }}>{money(Math.round(Math.abs(gain)))}{gainPct != null ? ` (${formatPct(gainPct)})` : ''}</strong></>}
               </p>
@@ -303,8 +317,8 @@ export function InvestmentsWorkspace() {
         </div>
         <Field id="inv-name" label="Nama aset (opsional)"><input id="inv-name" type="text" maxLength={150} autoComplete="off" placeholder={kind === 'saham' ? 'Bank Central Asia' : 'Bitcoin'} value={name} onChange={event => setName(event.target.value)} /></Field>
         <div className="form-columns">
-          <Field id="inv-quantity" label={kind === 'saham' ? 'Jumlah (lembar)' : 'Jumlah (koin)'} hint={kind === 'saham' ? '1 lot = 100 lembar.' : 'Boleh desimal, mis. 0,005.'}><input id="inv-quantity" type="text" inputMode="decimal" required autoComplete="off" placeholder={kind === 'saham' ? '100' : '0,005'} value={quantity} onChange={event => setQuantity(event.target.value)} /></Field>
-          <MoneyInput id="inv-avg" label="Harga beli rata-rata per unit" value={avgPrice} onChange={setAvgPrice} allowZero />
+          <Field id="inv-quantity" label={kind === 'saham' ? 'Jumlah (lot)' : 'Jumlah (koin)'} hint={kind === 'saham' ? 'Seperti di aplikasi sekuritas: 1 lot = 100 lembar.' : 'Boleh desimal, mis. 0,005.'}><input id="inv-quantity" type="text" inputMode="decimal" required autoComplete="off" placeholder={kind === 'saham' ? '143' : '0,005'} value={quantity} onChange={event => setQuantity(event.target.value)} /></Field>
+          <Field id="inv-avg" label={kind === 'saham' ? 'Harga beli rata-rata per lembar' : 'Harga beli rata-rata per koin'} hint="Boleh desimal pakai koma, mis. 462,13."><input id="inv-avg" type="text" inputMode="decimal" required autoComplete="off" placeholder="462,13" value={avgPrice} onChange={event => setAvgPrice(event.target.value)} /></Field>
         </div>
         <FormEnd error={formError} label={editing ? 'Simpan perubahan' : 'Tambah aset'} />
       </form>

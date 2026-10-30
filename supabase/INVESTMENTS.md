@@ -17,8 +17,8 @@ Aplikasi memuat tabel ini secara lunak: selama script belum dijalankan, bagian I
 | `kind` | `kind` | `saham` (IDX) atau `crypto` |
 | `symbol` | `symbol` | Kode emiten (mis. `BBCA`) atau kode crypto (mis. `BTC`) |
 | `name` | `name` | Nama tampilan aset, boleh kosong |
-| `quantity` | `quantity` | Jumlah pegangan: lembar untuk saham, satuan koin (boleh desimal) untuk crypto |
-| `avgPrice` | `avg_price` | Harga beli rata-rata per lembar/koin, rupiah utuh |
+| `quantity` | `quantity` | Jumlah pegangan tersimpan per lembar untuk saham (di formulir diisi per **lot**, 1 lot = 100 lembar), satuan koin (boleh desimal) untuk crypto |
+| `avgPrice` | `avg_price` | Harga beli rata-rata per lembar/koin, boleh berdesimal (mis. 462,13) — perlu `investments-avg-price-decimal.sql` dijalankan agar kolomnya `numeric`, bukan lagi domain rupiah utuh |
 
 ## Harga live (bukan dari tabel ini)
 
