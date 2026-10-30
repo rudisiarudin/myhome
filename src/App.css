@@ -1,7 +1,7 @@
 :root {
   --app-header-height: 80px;
   --app-shell-top-inset: 32px;
-  --chrome-glass: rgba(255, 255, 255, .86);
+  --chrome-glass: rgba(255, 255, 255, .72);
   --chrome-solid: #fff;
   --chrome-border: rgba(44, 44, 43, .1);
   --chrome-muted: #474745;
@@ -715,3 +715,161 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
 .app-splash svg { animation: splash-pulse 1.6s ease-in-out infinite; }
 @keyframes splash-pulse { 0%, 100% { opacity: .45; transform: scale(.97); } 50% { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .app-splash svg { animation: none; } }
+
+/* ============================================================
+   Liquid Glass (disetujui Ketua 30 Okt 2026 dari mockup
+   Myhome-LiquidGlass-v1): kaca diperluas dari dua permukaan
+   navigasi ke seluruh aplikasi, ala BeatWave.
+   - Lapisan ambience: gradasi radial lembut memakai warna
+     persona (--hero) + lavender/aprikot/biru pucat di belakang
+     cangkang aplikasi.
+   - Cangkang dibuat tembus cahaya TANPA backdrop-filter:
+     header & navbar berposisi fixed di dalamnya, dan filter
+     pada leluhur akan merusak posisi fixed keduanya. Gradasi
+     ambience memang sudah lembut, jadi tetap terasa kaca.
+   - Kartu/modal di dalam cangkang memakai backdrop-filter
+     sungguhan (blur + saturate) + tepi putih + sorotan atas.
+   ============================================================ */
+:root {
+  --glass-bg: rgba(255, 255, 255, .58);
+  --glass-bg-soft: rgba(255, 255, 255, .42);
+  --glass-bg-strong: rgba(255, 255, 255, .8);
+  --glass-border: rgba(255, 255, 255, .65);
+  --glass-shadow: 0 18px 40px rgba(64, 74, 52, .12), inset 0 1px 0 rgba(255, 255, 255, .85), inset 0 -1px 0 rgba(255, 255, 255, .25);
+  --glass-blur: blur(18px) saturate(160%);
+  --glass-blur-soft: blur(14px) saturate(150%);
+}
+[data-theme="dark"] {
+  --glass-bg: rgba(38, 39, 47, .55);
+  --glass-bg-soft: rgba(38, 39, 47, .42);
+  --glass-bg-strong: rgba(27, 28, 33, .84);
+  --glass-border: rgba(255, 255, 255, .12);
+  --glass-shadow: 0 18px 40px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .09);
+}
+
+.app-background {
+  background:
+    radial-gradient(560px 420px at 10% -6%, color-mix(in srgb, var(--hero) 60%, transparent), transparent 70%),
+    radial-gradient(520px 460px at 97% 22%, rgba(201, 189, 240, .5), transparent 70%),
+    radial-gradient(640px 520px at 28% 108%, rgba(242, 207, 159, .45), transparent 70%),
+    radial-gradient(420px 380px at 88% 97%, rgba(169, 200, 232, .42), transparent 70%),
+    linear-gradient(160deg, #f4f5ee, var(--page-bg) 55%, #e9ebf2);
+}
+[data-theme="dark"] .app-background {
+  background:
+    radial-gradient(560px 420px at 10% -6%, rgba(96, 118, 84, .30), transparent 70%),
+    radial-gradient(520px 460px at 97% 22%, rgba(92, 82, 148, .26), transparent 70%),
+    radial-gradient(640px 520px at 28% 108%, rgba(128, 98, 58, .20), transparent 70%),
+    #111216;
+}
+@media (max-width: 759px) {
+  .app-background { background:
+    radial-gradient(420px 340px at 8% -4%, color-mix(in srgb, var(--hero) 60%, transparent), transparent 70%),
+    radial-gradient(400px 380px at 100% 26%, rgba(201, 189, 240, .5), transparent 70%),
+    radial-gradient(480px 420px at 24% 106%, rgba(242, 207, 159, .45), transparent 70%),
+    linear-gradient(160deg, #f4f5ee, var(--page-bg) 55%, #e9ebf2); }
+  [data-theme="dark"] .app-background { background:
+    radial-gradient(420px 340px at 8% -4%, rgba(96, 118, 84, .30), transparent 70%),
+    radial-gradient(400px 380px at 100% 26%, rgba(92, 82, 148, .26), transparent 70%),
+    #111216; }
+}
+
+/* Cangkang tembus cahaya (tanpa filter — lihat catatan di atas). */
+.app-shell { background: color-mix(in srgb, var(--soft) 52%, transparent); }
+[data-theme="dark"] .app-shell { background: rgba(27, 28, 33, .52); }
+
+/* Kartu berwarna persona → kaca berwarna (color-mix menjaga warna asli). */
+.hero-card, .greeting-card, .balance-card {
+  background: color-mix(in srgb, var(--hero) 62%, transparent);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.mini-budget { background: color-mix(in srgb, var(--pastel-2) 55%, transparent); }
+.mini-piutang { background: color-mix(in srgb, var(--pastel-3) 55%, transparent); }
+.mini-card, .shortcut-card {
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.shortcut-dark { background: color-mix(in srgb, var(--pastel-2) 55%, transparent); }
+.shortcut-dark:hover { background: color-mix(in srgb, var(--hero) 62%, transparent); }
+.shortcut-light { background: color-mix(in srgb, var(--pastel-3) 50%, transparent); }
+.shortcut-light:hover { background: color-mix(in srgb, var(--pastel-5) 55%, transparent); }
+.decision-light { background: color-mix(in srgb, var(--lavender) 55%, transparent); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+.pocket-card { background: color-mix(in srgb, var(--pastel-3) 48%, transparent); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+.wallet-card { background: color-mix(in srgb, var(--lavender) 55%, transparent); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+.amount-entry, .payment-summary { background: color-mix(in srgb, var(--lavender) 55%, transparent); border: 1px solid var(--glass-border); -webkit-backdrop-filter: var(--glass-blur-soft); backdrop-filter: var(--glass-blur-soft); }
+
+/* Kartu netral → kaca putih / kaca gelap. */
+.bill-card, .journal-card, .budget-limit, .agenda-composer, .house-composer {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.shopping-row, .payment-button {
+  background: var(--glass-bg-soft);
+  border: 1px solid rgba(255, 255, 255, .45);
+  -webkit-backdrop-filter: var(--glass-blur-soft); backdrop-filter: var(--glass-blur-soft);
+}
+[data-theme="dark"] .shopping-row, [data-theme="dark"] .payment-button { border-color: rgba(255, 255, 255, .08); }
+.hero-chip {
+  border: 1px solid rgba(255, 255, 255, .5);
+  -webkit-backdrop-filter: blur(8px) saturate(150%); backdrop-filter: blur(8px) saturate(150%);
+}
+
+/* Kontrol tersegmentasi & sejenisnya → kaca lembut. */
+.segmented-control, .transaction-kind, .role-switch {
+  background: var(--glass-bg-soft);
+  border: 1px solid rgba(255, 255, 255, .5);
+  -webkit-backdrop-filter: var(--glass-blur-soft); backdrop-filter: var(--glass-blur-soft);
+}
+[data-theme="dark"] .segmented-control, [data-theme="dark"] .transaction-kind, [data-theme="dark"] .role-switch { border-color: rgba(255, 255, 255, .09); }
+
+/* Navbar bawah: pil kaca gelap melayang (satu-satunya kaca gelap). */
+.app-shell > .bottom-nav {
+  background: rgba(25, 25, 20, .72);
+  border-color: rgba(255, 255, 255, .16);
+  box-shadow: 0 20px 44px rgba(20, 22, 16, .38), inset 0 1px 0 rgba(255, 255, 255, .18);
+  -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%);
+}
+.bottom-nav .nav-button.active { background: rgba(255, 255, 255, .13); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22); border-radius: 999px; }
+
+/* Modal / sheet: kaca lebih pekat agar teks tetap terbaca. */
+.expense-dialog {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%);
+}
+.expense-dialog::backdrop { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+[data-theme="dark"] .expense-dialog { background: var(--glass-bg-strong); border: 1px solid var(--glass-border); }
+
+/* Asisten: gelembung & kartu konfirmasi ikut kaca. */
+.agent-msg.assistant { background: var(--glass-bg); -webkit-backdrop-filter: blur(10px) saturate(150%); backdrop-filter: blur(10px) saturate(150%); }
+.agent-balance { background: var(--glass-bg-soft); -webkit-backdrop-filter: blur(10px) saturate(150%); backdrop-filter: blur(10px) saturate(150%); }
+[data-theme="dark"] .agent-msg.assistant { background: rgba(35, 36, 46, .62); }
+[data-theme="dark"] .agent-balance { background: rgba(35, 36, 46, .5); }
+
+/* Tanpa dukungan backdrop-filter: naikkan kepekatan agar tetap terbaca. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root { --glass-bg: rgba(255, 255, 255, .94); --glass-bg-soft: rgba(255, 255, 255, .9); --glass-bg-strong: #fff; }
+  [data-theme="dark"] { --glass-bg: rgba(38, 39, 47, .95); --glass-bg-soft: rgba(38, 39, 47, .92); --glass-bg-strong: #1b1c21; }
+  .app-shell { background: var(--soft); }
+  [data-theme="dark"] .app-shell { background: #1b1c21; }
+  .app-shell > .bottom-nav { background: #191914; }
+}
+/* Pengguna yang meminta transparansi dikurangi: semua kaca jadi padat. */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass-bg: #fff; --glass-bg-soft: #f6f6f8; --glass-bg-strong: #fff; }
+  [data-theme="dark"] { --glass-bg: #23242c; --glass-bg-soft: #262730; --glass-bg-strong: #1b1c21; }
+  .app-shell { background: var(--soft); }
+  [data-theme="dark"] .app-shell { background: #1b1c21; }
+  .hero-card, .greeting-card, .balance-card, .mini-card, .shortcut-card, .bill-card, .journal-card,
+  .budget-limit, .agenda-composer, .house-composer, .pocket-card, .wallet-card, .decision-light,
+  .shopping-row, .payment-button, .segmented-control, .transaction-kind, .role-switch,
+  .expense-dialog, .app-shell > .bottom-nav, .agent-msg.assistant, .agent-balance {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  .app-shell > .bottom-nav { background: #191914; }
+}
