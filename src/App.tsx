@@ -483,7 +483,6 @@ export default function App() {
         </a>
         <div className="header-actions">
           {!store.isPreview && <button className="icon-button sync-refresh" aria-label="Muat ulang data" title="Refresh data" disabled={store.pending || store.refreshing} aria-busy={store.refreshing} onClick={() => void store.refresh()}><RefreshCw size={19} aria-hidden="true" /></button>}
-          <button className="icon-button" aria-label="Buka Asisten" title="Asisten" onClick={() => setAssistantOpen(true)}><Sparkles size={20} aria-hidden="true" /></button>
           <button className="theme-toggle icon-button" aria-label={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} title={theme === 'light' ? 'Gunakan mode gelap' : 'Gunakan mode terang'} aria-pressed={theme === 'dark'} onClick={() => setTheme(value => value === 'light' ? 'dark' : 'light')}>
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
@@ -581,6 +580,12 @@ export default function App() {
       </div>}
 
       <footer className="demo-note">{store.isPreview ? 'Pratinjau dengan data contoh · Semua perubahan data hilang saat halaman dimuat ulang. Tidak ada koneksi bank atau database.' : 'Catatan rumah disimpan di Supabase. Pencatatan ini tidak terhubung ke bank dan tidak memindahkan uang sungguhan.'}</footer>
+      {!assistantOpen && <div className="agent-fab-wrap">
+        <span className="agent-fab-label" aria-hidden="true">Asisten</span>
+        <button type="button" className="agent-fab" aria-label="Buka Asisten" title="Asisten" onClick={() => setAssistantOpen(true)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 7.5V4" /><circle className="agent-bot-antenna" cx="12" cy="3" r="1.1" /><rect x="4.5" y="7.5" width="15" height="11.5" rx="3.5" /><path d="M2.5 12.5v3M21.5 12.5v3" /><circle className="agent-bot-eye" cx="9.3" cy="12.6" r="1.15" /><circle className="agent-bot-eye" cx="14.7" cy="12.6" r="1.15" /><path d="M9.8 16.2c.7.6 1.4.9 2.2.9s1.5-.3 2.2-.9" /></svg>
+        </button>
+      </div>}
       <nav className="bottom-nav" aria-label="Navigasi utama">{tabs.map(renderNavButton)}</nav>
 
       <HouseholdDialogs role={currentProfile.role} />

@@ -949,3 +949,27 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
 .wallet-card, .decision-light { background: color-mix(in srgb, var(--lavender) 14%, transparent), var(--glass-bg); }
 .amount-entry, .payment-summary { background: color-mix(in srgb, var(--lavender) 14%, transparent), var(--glass-bg); }
 [data-theme="dark"] .hero-card, [data-theme="dark"] .greeting-card, [data-theme="dark"] .balance-card { background: color-mix(in srgb, var(--hero) 30%, transparent), var(--glass-bg); }
+
+/* Robot Asisten melayang (dari mockup Myhome-Robot-FAB-v1 yang disetujui
+   Ketua 30 Okt): menggantikan ikon Sparkles di header. Tombol kaca gelap
+   58px di kanan bawah, di atas navbar; robotnya melayang miring pelan,
+   berkedip, antena berdenyut, dan halo mengembang — semua animasi mati
+   pada prefers-reduced-motion (aturan global index.css + blok di bawah). */
+.agent-fab-wrap { position: fixed; right: max(18px, calc((100vw - 1040px) / 2 + 26px)); bottom: calc(98px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 7px; pointer-events: none; }
+.agent-fab-label { font-size: 9.5px; font-weight: 700; color: var(--muted); background: var(--glass-bg-soft); border: 1px solid var(--glass-border); padding: 3px 9px; border-radius: 999px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.agent-fab { pointer-events: auto; position: relative; width: 58px; height: 58px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .22); background: rgba(25, 25, 20, .8); color: #fff; -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%); box-shadow: 0 16px 34px rgba(20, 22, 16, .42), inset 0 1px 0 rgba(255, 255, 255, .25); display: grid; place-items: center; padding: 0; }
+.agent-fab::after { content: ''; position: absolute; inset: -1px; border-radius: 50%; border: 2px solid rgba(123, 160, 91, .55); animation: agent-halo 2.4s ease-out infinite; pointer-events: none; }
+@keyframes agent-halo { 0% { transform: scale(1); opacity: .8; } 70%, 100% { transform: scale(1.35); opacity: 0; } }
+.agent-fab > svg { width: 30px; height: 30px; animation: agent-bob 3s ease-in-out infinite; transform-origin: 50% 85%; }
+@keyframes agent-bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-3.5px) rotate(3deg); } }
+.agent-bot-antenna { fill: #8fce6e; stroke: none; animation: agent-glow 1.8s ease-in-out infinite; }
+@keyframes agent-glow { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.agent-bot-eye { fill: #fff; stroke: none; transform-box: fill-box; transform-origin: center; animation: agent-blink 4.6s ease-in-out infinite; }
+@keyframes agent-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.12); } }
+@media (prefers-reduced-motion: reduce) {
+  .agent-fab::after, .agent-fab > svg, .agent-bot-antenna, .agent-bot-eye { animation: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .agent-fab { background: #191914; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .agent-fab-label { background: var(--soft); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
