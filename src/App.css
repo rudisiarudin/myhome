@@ -873,3 +873,46 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
   }
   .app-shell > .bottom-nav { background: #191914; }
 }
+
+/* ============================================================
+   Koreksi Liquid Glass (30 Okt, dari uji Ketua di HP: "yang
+   berubah cuma navbar nya aja"). Sebabnya: ambience versi
+   pertama dicat pada wadah setinggi seluruh halaman, sehingga
+   kartu di tengah halaman hanya mendapat krem polos — kaca
+   tanpa warna di belakangnya memang tidak akan terlihat.
+   Perbaikan: ambience menjadi lapisan FIXED seukuran viewport
+   (selalu berada tepat di belakang kartu yang sedang tampil,
+   berubah nuansa saat halaman digulir), warnanya diperkuat,
+   saturasi blur dinaikkan, dan kepekatan tint kartu diturunkan
+   supaya latar benar-benar menembus kartu.
+   ============================================================ */
+:root { --glass-blur: blur(16px) saturate(180%); }
+.app-background { background: transparent; }
+.app-background::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(480px 380px at 6% -4%, color-mix(in srgb, var(--hero) 78%, transparent), transparent 70%),
+    radial-gradient(440px 400px at 102% 24%, rgba(178, 160, 238, .62), transparent 70%),
+    radial-gradient(520px 440px at 18% 104%, rgba(240, 190, 120, .55), transparent 70%),
+    radial-gradient(400px 360px at 92% 98%, rgba(140, 185, 230, .55), transparent 70%),
+    linear-gradient(165deg, #f6f6ef, var(--page-bg) 55%, #e7eaf3);
+}
+.app-shell { position: relative; z-index: 1; }
+[data-theme="dark"] .app-background::before {
+  background:
+    radial-gradient(480px 380px at 6% -4%, rgba(110, 134, 96, .38), transparent 70%),
+    radial-gradient(440px 400px at 102% 24%, rgba(104, 94, 168, .34), transparent 70%),
+    radial-gradient(520px 440px at 18% 104%, rgba(146, 112, 66, .26), transparent 70%),
+    #111216;
+}
+
+/* Tint kartu dilonggarkan agar warna ambience menembus. */
+.hero-card, .greeting-card, .balance-card { background: color-mix(in srgb, var(--hero) 50%, transparent); }
+.mini-budget { background: color-mix(in srgb, var(--pastel-2) 44%, transparent); }
+.mini-piutang { background: color-mix(in srgb, var(--pastel-3) 44%, transparent); }
+.shortcut-dark { background: color-mix(in srgb, var(--pastel-2) 44%, transparent); }
+.shortcut-light { background: color-mix(in srgb, var(--pastel-3) 40%, transparent); }
+.pocket-card { background: color-mix(in srgb, var(--pastel-3) 38%, transparent); }
+.wallet-card, .decision-light { background: color-mix(in srgb, var(--lavender) 42%, transparent); }
+.amount-entry, .payment-summary { background: color-mix(in srgb, var(--lavender) 42%, transparent); }
+:root { --glass-bg: rgba(255, 255, 255, .48); --glass-bg-soft: rgba(255, 255, 255, .34); }
