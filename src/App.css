@@ -916,3 +916,36 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
 .wallet-card, .decision-light { background: color-mix(in srgb, var(--lavender) 42%, transparent); }
 .amount-entry, .payment-summary { background: color-mix(in srgb, var(--lavender) 42%, transparent); }
 :root { --glass-bg: rgba(255, 255, 255, .48); --glass-bg-soft: rgba(255, 255, 255, .34); }
+
+/* ============================================================
+   Koreksi Liquid Glass 2 (30 Okt, uji Ketua: "beda dengan
+   design mockup kmu"). Bedanya: di mockup semua kartu adalah
+   KACA PUTIH bening (putih .58) — warna persona hanya semburat
+   tipis + warna dari ambience yang menembus. Di implementasi
+   kartu justru diwarnai tint pastel 38–50% sehingga terbaca
+   sebagai kartu pastel padat. Koreksi ini menyelaraskan ke
+   token mockup: permukaan = kaca putih, tint persona turun
+   ke 14–22% sebagai lapisan semburat di atasnya, dan ambience
+   ditambah gumpalan tengah agar kartu di tengah layar pun
+   duduk di atas peralihan warna.
+   ============================================================ */
+.app-background::before {
+  background:
+    radial-gradient(480px 380px at 6% -4%, color-mix(in srgb, var(--hero) 78%, transparent), transparent 70%),
+    radial-gradient(440px 400px at 102% 24%, rgba(178, 160, 238, .62), transparent 70%),
+    radial-gradient(460px 420px at 88% 62%, rgba(240, 190, 120, .42), transparent 70%),
+    radial-gradient(520px 440px at 18% 104%, rgba(240, 190, 120, .55), transparent 70%),
+    radial-gradient(400px 360px at 92% 98%, rgba(140, 185, 230, .55), transparent 70%),
+    linear-gradient(165deg, #f6f6ef, var(--page-bg) 55%, #e7eaf3);
+}
+.hero-card, .greeting-card, .balance-card { background: color-mix(in srgb, var(--hero) 22%, transparent), var(--glass-bg); }
+.mini-budget { background: color-mix(in srgb, var(--pastel-2) 20%, transparent), var(--glass-bg); }
+.mini-piutang { background: color-mix(in srgb, var(--pastel-3) 20%, transparent), var(--glass-bg); }
+.shortcut-dark { background: color-mix(in srgb, var(--pastel-2) 20%, transparent), var(--glass-bg); }
+.shortcut-dark:hover { background: color-mix(in srgb, var(--hero) 26%, transparent), var(--glass-bg); }
+.shortcut-light { background: color-mix(in srgb, var(--pastel-3) 18%, transparent), var(--glass-bg); }
+.shortcut-light:hover { background: color-mix(in srgb, var(--pastel-5) 22%, transparent), var(--glass-bg); }
+.pocket-card { background: color-mix(in srgb, var(--pastel-3) 16%, transparent), var(--glass-bg); }
+.wallet-card, .decision-light { background: color-mix(in srgb, var(--lavender) 14%, transparent), var(--glass-bg); }
+.amount-entry, .payment-summary { background: color-mix(in srgb, var(--lavender) 14%, transparent), var(--glass-bg); }
+[data-theme="dark"] .hero-card, [data-theme="dark"] .greeting-card, [data-theme="dark"] .balance-card { background: color-mix(in srgb, var(--hero) 30%, transparent), var(--glass-bg); }
