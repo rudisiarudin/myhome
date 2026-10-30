@@ -709,3 +709,9 @@ html { scroll-padding-top: calc(var(--app-header-height) + env(safe-area-inset-t
 .mini-card .record-expense { justify-content: center; }
 [data-theme="dark"] .mini-card .spend-status { color: #f0f0f2; }
 [data-theme="dark"] .mini-card .progress { background: rgba(255, 255, 255, .16); }
+
+/* Layar tunggu tanpa teks (refresh / buka ulang): logo di tengah, denyut pelan. */
+.app-splash { min-height: 100dvh; display: grid; place-items: center; }
+.app-splash svg { animation: splash-pulse 1.6s ease-in-out infinite; }
+@keyframes splash-pulse { 0%, 100% { opacity: .45; transform: scale(.97); } 50% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .app-splash svg { animation: none; } }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { errorMessage } from '../../lib/errors'
+import { AppLogoIcon } from '../../components/AppLogo'
 import { HouseholdContext } from './context'
 import type { Editor, HouseholdStore } from './store'
 import type { DebtLoan, HouseholdState, InvestmentHolding } from './model'
@@ -89,11 +90,16 @@ export function ConnectedHouseholdProvider({ client, householdId, children }: {
     }
   }
 
-  if (!state) return <section className="connection-state" aria-busy={refreshing}>
-    <h1>{refreshError ? 'Data rumah belum bisa dimuat' : 'Menyiapkan rumah kita'}</h1>
-    <p role={refreshError ? 'alert' : 'status'}>{refreshError || 'Mengambil catatan terbaru dari Supabase…'}</p>
-    {refreshError && <button className="primary-button" disabled={refreshing} onClick={() => void refresh()}>Coba muat ulang</button>}
-  </section>
+  if (!state) {
+    // Saat memuat normal: splash logo tanpa teks. Teks hanya muncul bila
+    // benar-benar gagal, karena di situlah pengguna butuh penjelasan.
+    if (!refreshError) return <div className="app-splash" role="status" aria-label="Memuat Myhome"><AppLogoIcon size={56} /></div>
+    return <section className="connection-state" aria-busy={refreshing}>
+      <h1>Data rumah belum bisa dimuat</h1>
+      <p role="alert">{refreshError}</p>
+      <button className="primary-button" disabled={refreshing} onClick={() => void refresh()}>Coba muat ulang</button>
+    </section>
+  }
 
   const debtData = (debt: DebtLoan) => ({ title: debt.title, type: debt.type, lender_or_borrower: debt.lenderOrBorrower, total_amount: debt.totalAmount, remaining_amount: debt.remainingAmount, monthly_payment: debt.monthlyPayment ?? null, due_day: debt.dueDay ?? null, tenor_months: debt.tenorMonths ?? null, remaining_months: debt.remainingMonths ?? null, credit_card_funded: debt.creditCardFunded ?? false, notes: debt.notes ?? '' })
   const investmentData = (holding: InvestmentHolding) => ({ kind: holding.kind, symbol: holding.symbol, name: holding.name, quantity: holding.quantity, avg_price: holding.avgPrice })
