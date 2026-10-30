@@ -62,13 +62,18 @@ export function decodeHousehold(rows: Record<string, Row[]>): HouseholdState {
     investments: (rows.investments ?? []).map(r => {
       const quantity = Number(r.quantity)
       if (!Number.isFinite(quantity) || quantity < 0) throw new Error('Jumlah pegangan investasi di database tidak dapat dibaca.')
+      // avg_price boleh berdesimal (kolom numeric(19,4) sejak migrasi
+      // investments-avg-price-decimal.sql), jadi tidak dibaca dengan
+      // parser rupiah utuh seperti nominal uang lainnya.
+      const avgPrice = Number(r.avg_price)
+      if (!Number.isFinite(avgPrice) || avgPrice < 0) throw new Error('Harga beli rata-rata investasi di database tidak dapat dibaca.')
       return {
         id: text(r, 'id'),
         kind: text(r, 'kind') as InvestmentHolding['kind'],
         symbol: text(r, 'symbol'),
         name: text(r, 'name'),
         quantity,
-        avgPrice: number(r, 'avg_price')
+        avgPrice
       }
     })
   }
