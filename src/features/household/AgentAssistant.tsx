@@ -6,6 +6,7 @@ import { useAccount } from '../account/context'
 import { supabase } from '../../lib/supabase'
 import { daysUntil, formatDate, goalBalance, makeId, money, spentIn, TODAY, walletBalance } from './model'
 import type { HouseholdState, Transaction } from './model'
+import { hasCatatTrigger, parseExpenseText } from './expenseText'
 
 // Kartu konfirmasi penyamaan saldo: dibuat setelah Asisten membaca saldo
 // dari screenshot m-banking. Tidak ada data yang berubah sebelum pengguna
@@ -307,7 +308,7 @@ async function askLLM(settings: AgentSettings, state: HouseholdState, history: C
         messages: [
           {
             role: 'system',
-            content: `Kamu adalah Asisten Myhome, asisten rumah tangga berbahasa Indonesia di aplikasi Myhome. Jawab singkat, ramah, dan hanya berdasarkan data rumah di bawah ini. Jika datanya tidak ada, katakan terus terang — jangan mengarang angka. Kamu tidak bisa mengubah atau menghapus data apa pun secara langsung; satu-satunya pengecualian adalah penyamaan saldo dompet dan pencatatan pengeluaran dari screenshot m-banking, bukti QRIS, atau foto struk, yang berjalan lewat kartu konfirmasi khusus dan selalu menunggu persetujuan pengguna.\n\nData rumah saat ini:\n${buildContext(state)}`,
+            content: `Kamu adalah Asisten Myhome, asisten rumah tangga berbahasa Indonesia di aplikasi Myhome. Jawab singkat, ramah, dan hanya berdasarkan data rumah di bawah ini. Jika datanya tidak ada, katakan terus terang — jangan mengarang angka. Kamu tidak bisa mengubah atau menghapus data apa pun secara langsung; satu-satunya pengecualian adalah penyamaan saldo dompet dan pencatatan pengeluaran dari pesan teks, screenshot m-banking, bukti QRIS, atau foto struk, yang berjalan lewat kartu konfirmasi khusus dan selalu menunggu persetujuan pengguna.\n\nData rumah saat ini:\n${buildContext(state)}`,
           },
           ...history.slice(-6).map(message => ({ role: message.role, content: message.text })),
           { role: 'user', content: question },
@@ -595,6 +596,32 @@ export function AgentAssistant({ open, onOpenChange }: { open: boolean; onOpenCh
     const history = [...messages, userMessage]
     setMessages(history)
     setInput('')
+    // Jalur catat pengeluaran dari teks bebas: kalimat perintah mencatat
+    // (mis. "Catat isi bensin 40rb") dibuatkan kartu konfirmasi yang sama
+    // persis seperti hasil scan struk/QRIS — tidak ada data yang berubah
+    // sebelum pengguna menekan Catat pengeluaran di kartu itu.
+    const parsedExpense = parseExpenseText(question, { categoryKeys: EXPENSE_CATEGORY_KEYS, walletNames: store.state.wallets.map(wallet => wallet.name) })
+    if (parsedExpense) {
+      if (!store.state.wallets.length) {
+        setMessages([...history, { id: makeId(), role: 'assistant', text: 'Kalimatnya terbaca sebagai pengeluaran, tapi belum ada dompet di aplikasi jadi belum bisa dicatat. Tambahkan dompet dulu di tab Keuangan.' }])
+        return
+      }
+      const wallet = (parsedExpense.walletHint ? store.state.wallets.find(item => item.name === parsedExpense.walletHint) : undefined) ?? store.state.wallets[0]
+      setMessages([...history, {
+        id: makeId(),
+        role: 'assistant',
+        text: 'Siap, kubuatkan drafnya. Periksa kartunya — pengeluaran baru tercatat setelah kamu menekan Catat pengeluaran.',
+        expenseCard: { merchant: parsedExpense.title, total: parsedExpense.amount, walletId: wallet.id, category: parsedExpense.categoryKey, status: 'pending' },
+      }])
+      return
+    }
+    // Ada kata "catat" tapi nominalnya tidak terurai — tangani lokal dan
+    // minta nominalnya disebut; jangan diteruskan ke mode AI yang akan
+    // menolak mencatat lewat teks.
+    if (hasCatatTrigger(question)) {
+      setMessages([...history, { id: makeId(), role: 'assistant', text: 'Siap mencatat — sebutkan juga nominalnya ya, contohnya: "Catat isi bensin 40rb" atau "Catat makan siang Rp35.000".' }])
+      return
+    }
     const local = answerLocally(store.state, question, nameForPerson)
     if (local) {
       setMessages([...history, { id: makeId(), role: 'assistant', text: local }])
