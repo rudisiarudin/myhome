@@ -19,6 +19,7 @@
 
 export const ALLOWED_UPSTREAM_HOSTS = new Set([
   'router.udi.web.id',
+  'api.udi.web.id',
   'integrate.api.nvidia.com',
 ])
 
