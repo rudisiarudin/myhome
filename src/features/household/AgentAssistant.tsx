@@ -257,7 +257,7 @@ function extractErrorDetail(raw: string): string {
 // Endpoint yang tidak lolos pemeriksaan CORS browser dirutekan lewat relai
 // server Myhome (/api/chat dan /api/models). Daftar host di sini harus sama
 // dengan daftar izin di api/_relay.js.
-const RELAY_HOSTS = new Set(['router.udi.web.id', 'integrate.api.nvidia.com'])
+const RELAY_HOSTS = new Set(['router.udi.web.id', 'api.udi.web.id', 'integrate.api.nvidia.com'])
 
 function usesRelay(baseUrl: string): boolean {
   try {
